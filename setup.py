@@ -41,7 +41,7 @@ setup(
     long_description=readme,
     author="Inati Lab, NINDS, NIH",
     author_email='souheil.inati@gmail.com',
-    url='https://github.com/inati/jem-python',
+    url='https://github.com/inatilab/jem-python',
     packages=find_packages(exclude=['docs', 'tests']),
     entry_points={
         'console_scripts': [
@@ -57,7 +57,7 @@ setup(
             ]
         },
     install_requires=requirements,
-    license="BSD (3-clause)",
+    license="Public Domain",
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Natural Language :: English',
