@@ -6,6 +6,11 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.ccache  # https://github.com/travis-ci/travis-ci/issues/5853
 
+env:
+  global:
+    # Doctr deploy key for InatiLab/jem-python
+    - secure: "Gav0C+8mQZ0n1D2kunfxkzTDpwOLyM/gvuLZTtTjLMcOXQehGURJMDX14x4IPjKh8tbW3ILaFJgqpHyZLbYII5pkypvYgIM6srvc3NsGMBDfIl+85jWNvTSgodaCiqSqcwaOoErghZPc2LAUPd6V7yZQC+AlpZGOLdheFddLuOTxTc+9fwWFjJbQtsPKke/djBbDVLdBElVzZbmGAwyICooARzVXlG45SwSAzKQ7sUFIENZpPC6Pkm5Gyh/DM58Fn9JxMSWK3Kc0qp16Ekjh2kXrQyefZ/XSwsIlH6+VjGXZh51EdOMFzWvZCmfiIEp2Q2dtmBHMq2D7mvNZA56g3XtCT36S127n/u6/Pls5mGy+sWyXd2Vj70QGzrEqlCq/lRg3l/CI2UOEVeXUXBstqwqivgBZKycEsZtoFTLR/KiA+o0FLe1h9te/GjrjIf4UJmKhIrNi9yUNCjedetT+Cl/m2u45Snxg8N3XwDnW7GcY7vmL55pil2vljec3l14OCC8hY6zzS5ySjBj6NGU5nDRgl6qatXUgzyIA6rc0ET9VOEkBcnBPNauYH5QM7wd0t7uxKwS+ajwYZO1KrBkbD613rTSZXt1uTIlviCMYdtSvdQy89hmzc/kN3Opx5elHgTU4YwKCCJz1SiDC1ZlcmHkOVAlBN/5RJBh3/MfcncU="
+
 install:
   # Install this package and the packages listed in requirements.txt.
   - pip install .
@@ -17,4 +22,7 @@ script:
   - coverage report -m  # Generate test coverage report.
   - codecov  # Upload the report to codecov.
   - flake8 --max-line-length=115  # Enforce code style (but relax line length limit a bit).
+  - set -e
   - make -C docs html  # Build the documentation.
+  - pip install doctr
+  - doctr deploy --built-docs docs/build/html .  # Publish the documentation
