@@ -2,8 +2,8 @@
 JEM
 ===============================
 
-.. image:: https://img.shields.io/travis/inatilab/jem.svg
-        :target: https://travis-ci.org/inatilab/jem
+.. image:: https://img.shields.io/travis/InatiLab/jem.svg
+        :target: https://travis-ci.org/InatiLab/jem
 
 .. image:: https://img.shields.io/pypi/v/jem.svg
         :target: https://pypi.python.org/pypi/jem
