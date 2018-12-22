@@ -2,12 +2,12 @@
 Credits
 =======
 
-Maintainer
-----------
+Maintainers
+-----------
 
-* Inati Lab, NINDS, NIH <souheil.inati@gmail.com>
+* Inati Lab, NINDS, NIH <sara.inati@nih.gov>
 
 Contributors
 ------------
 
-None yet. Why not be the first? See: CONTRIBUTING.rst
+* Souheil Inati, Inati Analytics <souheil.inati@gmail.com>

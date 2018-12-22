@@ -2,8 +2,8 @@
 JEM
 ===============================
 
-.. image:: https://img.shields.io/travis/inati/jem-python.svg
-        :target: https://travis-ci.org/inati/jem-python
+.. image:: https://img.shields.io/travis/inatilab/jem-python.svg
+        :target: https://travis-ci.org/inatilab/jem-python
 
 .. image:: https://img.shields.io/pypi/v/jem-python.svg
         :target: https://pypi.python.org/pypi/jem-python
@@ -11,8 +11,8 @@ JEM
 
 Python package for MRI and electrophysiology analysis.
 
-* Free software: 3-clause BSD license
-* Documentation: (COMING SOON!) https://inati.github.io/jem-python.
+* Free software: Public Domain
+* Documentation: (COMING SOON!) https://inatilab.github.io/jem-python.
 
 Features
 --------
