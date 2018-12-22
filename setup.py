@@ -41,7 +41,7 @@ setup(
     long_description=readme,
     author="Inati Lab, NINDS, NIH",
     author_email='souheil.inati@gmail.com',
-    url='https://github.com/inatilab/jem-python',
+    url='https://github.com/inatilab/jem',
     packages=find_packages(exclude=['docs', 'tests']),
     entry_points={
         'console_scripts': [
