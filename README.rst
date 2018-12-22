@@ -12,7 +12,7 @@ JEM
 Python package for MRI and electrophysiology analysis.
 
 * Free software: Public Domain
-* Documentation: ttps://inatilab.github.io/jem.
+* Documentation: https://inatilab.github.io/jem.
 
 Features
 --------
