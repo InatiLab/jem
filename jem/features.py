@@ -5,10 +5,10 @@ from .filters import gradient_rot, hessian_rot
 
 
 # Number of spatial scales
-NUM_SCALES = 4
+NUM_SCALES = 3
 
 # Scales for normalization / gain control
-NORMALIZATION_SCALE = 4
+NORMALIZATION_SCALE = 5
 
 
 def _get_dim(data):
