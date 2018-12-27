@@ -120,7 +120,9 @@ def compute_riff(input_image, nscales, normalization_scale, output):
 
     # compute the textures
     t, names = riff(
-        im.get_data().astype("float32"), nscales=nscales, normalization_scale=normalization_scale
+        im.get_data().astype("float32"),
+        nscales=nscales,
+        normalization_scale=normalization_scale,
     )
     nfeats = len(t)
     out = np.zeros([*t[0].shape, nfeats], t[0].dtype)
