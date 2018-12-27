@@ -30,6 +30,18 @@ def _get_dim(data):
     return ndim
 
 
+def rectify(data, polarity=1):
+    """
+    Rectify the data, polarity is either 1 or -1
+    """
+    if polarity not in [1, -1]:
+        raise RuntimeError("Rectification polarity is either 1 or -1.")
+
+    output = polarity * data * ((polarity * data) > 0)
+
+    return output
+
+
 def input_normalization(data, scale=NORMALIZATION_SCALE, high_pass_output=True):
     """
     Normalize in a manner similar to the retina
@@ -44,6 +56,59 @@ def input_normalization(data, scale=NORMALIZATION_SCALE, high_pass_output=True):
         y = data / f
 
     return y
+
+
+def front_end_features(data, nscales=NUM_SCALES, normalization_scale=None):
+    """
+    Compute multi-scale image features from the zeroth, first, and
+    second order gaussian derivatives with divisive normalization
+
+    :param data:  2D or 3D numpy array
+    :param nscales: int number of scales
+    :normalization_scale: int scale for stage 1 input normalization
+    :return: list of 2D or 3D numpy arrays and list of names
+    """
+
+    if normalization_scale is None:
+        normalization_scale = NORMALIZATION_SCALE
+    if normalization_scale < nscales:
+        raise RuntimeError(
+            "Normalization scale cannot be less than the number of Scales."
+        )
+
+    # Initialize the features list and the names list
+    t = []
+    names = []
+
+    # Stage 1: High pass filter and local normalization
+    d = input_normalization(data, scale=normalization_scale)
+
+    # Stage 2: Feature generation
+    # The features are organized by level
+    # At each level:
+    #    bandpass
+    #    gradient
+    #    hessian
+
+    for lev in range(nscales):
+        # Bandpass: zeroth order gaussian derivative
+        feat = band_pass(d, scale_one=lev, scale_two=lev + 1)
+        t.append(feat)
+        names.append(f"Band Pass L{lev}")
+
+        # Gradient: first order gaussian derivates
+        feat = gradient_band_pass(d, scale=lev)
+        for n in range(len(feat)):
+            t.append(feat[n])
+            names.append(f"Gradient L{lev}M{n}")
+
+        # Hessian: second order gaussian derivatives
+        feat = hessian_band_pass(d, scale=lev)
+        for n in range(len(feat)):
+            t.append(feat[n])
+            names.append(f"Hessian L{lev}M{n}")
+
+    return t, names
 
 
 def riff(data, nscales=NUM_SCALES, normalization_scale=None):
