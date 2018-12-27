@@ -42,7 +42,7 @@ def rectify(data, polarity=1):
     return output
 
 
-def input_normalization(data, scale=NORMALIZATION_SCALE, high_pass_output=True):
+def input_normalization(data, scale=NORMALIZATION_SCALE):
     """
     Normalize in a manner similar to the retina
     """
@@ -50,10 +50,7 @@ def input_normalization(data, scale=NORMALIZATION_SCALE, high_pass_output=True):
     a = np.abs(z)
     sigma = np.mean(a)
     f = sigma + low_pass(a, scale)
-    if high_pass_output:
-        y = z / f
-    else:
-        y = data / f
+    y = data / f
 
     return y
 
