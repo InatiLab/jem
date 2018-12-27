@@ -292,7 +292,7 @@ def gradient_band_pass(data, scale=1):
     elif data.ndim == 3:
         x, y, z = _scale_coordinates(data.shape, scale)
         rsq = x ** 2 + y ** 2 + z ** 2
-        g = np.exp(-0.5 * rsq)
+        g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
         temp = 1j * g * fftshift(fftn(data))
         dx = ifftn(ifftshift(x * temp))
         dy = ifftn(ifftshift(y * temp))
@@ -340,7 +340,7 @@ def hessian_band_pass(data, scale=1):
     elif data.ndim == 3:
         x, y, z = _scale_coordinates(data.shape, scale)
         rsq = x ** 2 + y ** 2 + z ** 2
-        g = np.exp(-0.5 * rsq)
+        g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
         temp = -1.0 * g * fftshift(fftn(data))
         dxx = ifftn(ifftshift(x * x * temp))
         dxy = ifftn(ifftshift(x * y * temp))
