@@ -84,7 +84,7 @@ def coil_correction(input_image, scale, output):
 
     # load the image data and the coil correction data and apply
     data = im.get_data().astype("float32")
-    data_corr = input_normalization(data, scale=scale, high_pass_output=False)
+    data_corr = input_normalization(data, scale=scale)
 
     # write out the result as floating point and preserve the header
     out_image = type(im)(data_corr, affine=None, header=im.header)
