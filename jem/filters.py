@@ -241,20 +241,25 @@ def band_pass(data, scale_one, scale_two):
     Difference of two gaussians
     G(data, s1) - G(data, s2)
     """
-    bp = gaussian(data, scale=scale_one) - gaussian(data, scale=scale_two)
-
-    return bp
+    r_1 = _radius(data.shape, scale_one)
+    r_2 = _radius(data.shape, scale_two)
+    g = np.exp(-0.5 * r_1 ** 2) - np.exp(-0.5 * r_2 ** 2)
+    bp = ifftn(ifftshift(g * fftshift(fftn(data))))
+    if np.isrealobj(data):
+        return np.real(bp)
+    else:
+        return bp
 
 
 def band_pass_kernel(shape, scale_one, scale_two):
     """
     Band pass filter kernel in the image domain
     """
-    bp = gaussian_kernel(shape, scale=scale_one) - gaussian_kernel(
-        shape, scale=scale_two
-    )
+    r_1 = _radius(shape, scale_one)
+    r_2 = _radius(shape, scale_two)
+    g = np.exp(-0.5 * r_1 ** 2) - np.exp(-0.5 * r_2 ** 2)
+    bp = np.real(fftshift(ifftn(ifftshift(g))))
     bp = _crop_filter(bp, scale_two)
-
     return bp
 
 
@@ -424,12 +429,12 @@ def hessian_kernel(shape, scale=1):
         dyy = np.real(fftshift(ifftn(ifftshift(-1.0 * y * y * g))))
         dyz = np.real(fftshift(ifftn(ifftshift(-1.0 * y * z * g))))
         dzz = np.real(fftshift(ifftn(ifftshift(-1.0 * z * z * g))))
-        dxx = _crop_filter(dxx, scale+1)
-        dxy = _crop_filter(dxy, scale+1)
-        dxz = _crop_filter(dxz, scale+1)
-        dyy = _crop_filter(dyy, scale+1)
-        dyz = _crop_filter(dyz, scale+1)
-        dzz = _crop_filter(dzz, scale+1)
+        dxx = _crop_filter(dxx, scale + 1)
+        dxy = _crop_filter(dxy, scale + 1)
+        dxz = _crop_filter(dxz, scale + 1)
+        dyy = _crop_filter(dyy, scale + 1)
+        dyz = _crop_filter(dyz, scale + 1)
+        dzz = _crop_filter(dzz, scale + 1)
         return [dxx, dxy, dxz, dyy, dyz, dzz]
 
     else:
@@ -502,8 +507,8 @@ def gradient_band_pass_kernel(shape, scale=1):
         g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
         dx = np.real(fftshift(ifftn(ifftshift(1j * x * g))))
         dy = np.real(fftshift(ifftn(ifftshift(1j * y * g))))
-        dx = _crop_filter(dx, scale+1)
-        dy = _crop_filter(dy, scale+1)
+        dx = _crop_filter(dx, scale + 1)
+        dy = _crop_filter(dy, scale + 1)
         return [dx, dy]
 
     elif ndim == 3:
@@ -513,9 +518,9 @@ def gradient_band_pass_kernel(shape, scale=1):
         dx = np.real(fftshift(ifftn(ifftshift(1j * x * g))))
         dy = np.real(fftshift(ifftn(ifftshift(1j * y * g))))
         dz = np.real(fftshift(ifftn(ifftshift(1j * z * g))))
-        dx = _crop_filter(dx, scale+1)
-        dy = _crop_filter(dy, scale+1)
-        dz = _crop_filter(dz, scale+1)
+        dx = _crop_filter(dx, scale + 1)
+        dy = _crop_filter(dy, scale + 1)
+        dz = _crop_filter(dz, scale + 1)
         return [dx, dy, dz]
     else:
         raise RuntimeError(
@@ -599,9 +604,9 @@ def hessian_band_pass_kernel(shape, scale=1):
         dxx = np.real(fftshift(ifftn(ifftshift(-1.0 * x * x * g))))
         dxy = np.real(fftshift(ifftn(ifftshift(-1.0 * x * y * g))))
         dyy = np.real(fftshift(ifftn(ifftshift(-1.0 * y * y * g))))
-        dxx = _crop_filter(dxx, scale+1)
-        dxy = _crop_filter(dxy, scale+1)
-        dyy = _crop_filter(dyy, scale+1)
+        dxx = _crop_filter(dxx, scale + 1)
+        dxy = _crop_filter(dxy, scale + 1)
+        dyy = _crop_filter(dyy, scale + 1)
         return [dxx, dxy, dyy]
 
     elif ndim == 3:
@@ -614,12 +619,12 @@ def hessian_band_pass_kernel(shape, scale=1):
         dyy = np.real(fftshift(ifftn(ifftshift(-1.0 * y * y * g))))
         dyz = np.real(fftshift(ifftn(ifftshift(-1.0 * y * z * g))))
         dzz = np.real(fftshift(ifftn(ifftshift(-1.0 * z * z * g))))
-        dxx = _crop_filter(dxx, scale+1)
-        dxy = _crop_filter(dxy, scale+1)
-        dxz = _crop_filter(dxz, scale+1)
-        dyy = _crop_filter(dyy, scale+1)
-        dyz = _crop_filter(dyz, scale+1)
-        dzz = _crop_filter(dzz, scale+1)
+        dxx = _crop_filter(dxx, scale + 1)
+        dxy = _crop_filter(dxy, scale + 1)
+        dxz = _crop_filter(dxz, scale + 1)
+        dyy = _crop_filter(dyy, scale + 1)
+        dyz = _crop_filter(dyz, scale + 1)
+        dzz = _crop_filter(dzz, scale + 1)
         return [dxx, dxy, dxz, dyy, dyz, dzz]
 
     else:
