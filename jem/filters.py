@@ -189,7 +189,7 @@ def gradient(data, scale=1):
         if np.isrealobj(data):
             dx = np.real(dx)
             dy = np.real(dy)
-            return [dx, dy]
+        return [dx, dy]
 
     elif data.ndim == 3:
         x, y, z = _scale_coordinates(data.shape, scale)
@@ -204,7 +204,7 @@ def gradient(data, scale=1):
             dx = np.real(dx)
             dy = np.real(dy)
             dz = np.real(dy)
-            return [dx, dy, dz]
+        return [dx, dy, dz]
     else:
         raise RuntimeError(
             "Unsupported number of dimensions {}. We only supports 2 or 3D arrays.".format(
@@ -287,7 +287,7 @@ def gradient_band_pass(data, scale=1):
         if np.isrealobj(data):
             dx = np.real(dx)
             dy = np.real(dy)
-            return [dx, dy]
+        return [dx, dy]
 
     elif data.ndim == 3:
         x, y, z = _scale_coordinates(data.shape, scale)
@@ -302,7 +302,7 @@ def gradient_band_pass(data, scale=1):
             dx = np.real(dx)
             dy = np.real(dy)
             dz = np.real(dy)
-            return [dx, dy, dz]
+        return [dx, dy, dz]
     else:
         raise RuntimeError(
             "Unsupported number of dimensions {}. We only supports 2 or 3D arrays.".format(
