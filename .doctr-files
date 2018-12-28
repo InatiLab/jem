@@ -1,3 +1,9 @@
+./_modules/index.html
+./_modules/jem/features.html
+./_modules/jem/filters.html
+./_sources/api/features.rst.txt
+./_sources/api/filters.rst.txt
+./_sources/api/index.rst.txt
 ./_sources/index.rst.txt
 ./_sources/installation.rst.txt
 ./_sources/release-history.rst.txt
@@ -67,10 +73,14 @@
 ./_static/up-pressed.png
 ./_static/up.png
 ./_static/websupport.js
+./api/features.html
+./api/filters.html
+./api/index.html
 ./genindex.html
 ./index.html
 ./installation.html
 ./objects.inv
+./py-modindex.html
 ./release-history.html
 ./search.html
 ./searchindex.js

@@ -1,0 +1,391 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>jem.features &mdash; JEM 0.1.1.post11+ga146362 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> JEM
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1.post11+ga146362
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../release-history.html">Release History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">JEM API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">JEM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>jem.features</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for jem.features</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">high_pass</span><span class="p">,</span> <span class="n">low_pass</span>
+<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">band_pass</span><span class="p">,</span> <span class="n">gradient_band_pass</span><span class="p">,</span> <span class="n">hessian_band_pass</span>
+<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">gradient_rot</span><span class="p">,</span> <span class="n">hessian_rot</span>
+
+
+<span class="c1"># Number of spatial scales</span>
+<span class="n">NUM_SCALES</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1"># Scales for normalization / gain control</span>
+<span class="n">NORMALIZATION_SCALE</span> <span class="o">=</span> <span class="mi">5</span>
+
+
+<span class="k">def</span> <span class="nf">_get_dim</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data dimensionality with error checking</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ndim</span>
+
+
+<div class="viewcode-block" id="rectify"><a class="viewcode-back" href="../../api/features.html#jem.features.rectify">[docs]</a><span class="k">def</span> <span class="nf">rectify</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rectify the data, polarity is either 1 or -1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">polarity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Rectification polarity is either 1 or -1.&quot;</span><span class="p">)</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">polarity</span> <span class="o">*</span> <span class="n">data</span> <span class="o">*</span> <span class="p">((</span><span class="n">polarity</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="input_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.input_normalization">[docs]</a><span class="k">def</span> <span class="nf">input_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize in a manner similar to the retina</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">+</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">data</span> <span class="o">/</span> <span class="n">f</span>
+
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="front_end_features"><a class="viewcode-back" href="../../api/features.html#jem.features.front_end_features">[docs]</a><span class="k">def</span> <span class="nf">front_end_features</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nscales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute multi-scale image features from the zeroth, first, and</span>
+<span class="sd">    second order gaussian derivatives with divisive normalization</span>
+
+<span class="sd">    :param data:  2D or 3D numpy array</span>
+<span class="sd">    :param nscales: int number of scales</span>
+<span class="sd">    :normalization_scale: int scale for stage 1 input normalization</span>
+<span class="sd">    :return: list of 2D or 3D numpy arrays and list of names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">normalization_scale</span> <span class="o">=</span> <span class="n">NORMALIZATION_SCALE</span>
+    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="o">&lt;</span> <span class="n">nscales</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Normalization scale cannot be less than the number of Scales.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Initialize the features list and the names list</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Stage 1: High pass filter and local normalization</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">input_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">)</span>
+
+    <span class="c1"># Stage 2: Feature generation</span>
+    <span class="c1"># The features are organized by level</span>
+    <span class="c1"># At each level:</span>
+    <span class="c1">#    bandpass</span>
+    <span class="c1">#    gradient</span>
+    <span class="c1">#    hessian</span>
+
+    <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nscales</span><span class="p">):</span>
+        <span class="c1"># Bandpass: zeroth order gaussian derivative</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale_one</span><span class="o">=</span><span class="n">lev</span><span class="p">,</span> <span class="n">scale_two</span><span class="o">=</span><span class="n">lev</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Band Pass L</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Gradient: first order gaussian derivates</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feat</span><span class="p">)):</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gradient L</span><span class="si">{lev}</span><span class="s2">M</span><span class="si">{n}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Hessian: second order gaussian derivatives</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feat</span><span class="p">)):</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian L</span><span class="si">{lev}</span><span class="s2">M</span><span class="si">{n}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">names</span></div>
+
+
+<div class="viewcode-block" id="riff"><a class="viewcode-back" href="../../api/features.html#jem.features.riff">[docs]</a><span class="k">def</span> <span class="nf">riff</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nscales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute multi-scale rotationally invariant image features</span>
+<span class="sd">    from the zeroth, first, and second order gaussian derivatives</span>
+<span class="sd">    with divisive normalization</span>
+
+<span class="sd">    :param data:  2D or 3D numpy array</span>
+<span class="sd">    :param nscales: int number of scales</span>
+<span class="sd">    :normalization_scale: int scale for stage 1 input normalization</span>
+<span class="sd">    :return: list of 3*nscales+1 2D or 3D numpy arrays and list of names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">normalization_scale</span> <span class="o">=</span> <span class="n">NORMALIZATION_SCALE</span>
+    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="o">&lt;</span> <span class="n">nscales</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Normalization scale cannot be less than the number of Scales.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Initialize the textures list and the names list</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Stage 1: High pass filter and local normalization</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">input_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">)</span>
+
+    <span class="c1"># Stage 2: Feature generation</span>
+    <span class="c1"># The features are organized by level</span>
+    <span class="c1"># At each level:</span>
+    <span class="c1">#    bandpass (2 rotational invariant: bp, |bp|)</span>
+    <span class="c1">#    gradient (1 rotational invariant: |g|)</span>
+    <span class="c1">#    hessian (4 rotational invariants: Tr(H), Det(H), Sec, |H|)</span>
+    <span class="c1">#  Keep a running total of the total power from each feature</span>
+    <span class="n">total_power</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nscales</span><span class="p">):</span>
+        <span class="c1"># Bandpass (difference of adjacent gaussians)</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale_one</span><span class="o">=</span><span class="n">lev</span><span class="p">,</span> <span class="n">scale_two</span><span class="o">=</span><span class="n">lev</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Band Pass S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">feat</span><span class="p">))</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Band Pass Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">total_power</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="c1"># Gradient</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">gradient_rot</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gradient Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># The power is the square of the gradient amplitude</span>
+        <span class="n">total_power</span> <span class="o">+=</span> <span class="n">feat</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="c1"># The next set of features are the rotational invariants of the</span>
+        <span class="c1"># second order gaussian derivatives</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">hessian_rot</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Laplacian S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Det S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># The power is the the square of the Frobenius norm</span>
+            <span class="n">total_power</span> <span class="o">+=</span> <span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian R2 S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Det S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># The power is the the square of the Frobenius norm</span>
+            <span class="n">total_power</span> <span class="o">+=</span> <span class="n">feat</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">names</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Inati Lab, NINDS, NIH
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+        <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
