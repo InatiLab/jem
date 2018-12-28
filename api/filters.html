@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Filters (jem.filters) &mdash; JEM 0.1.1.post12+gaecb541 documentation</title>
+  <title>Filters (jem.filters) &mdash; JEM 0.1.1.post13+g8eefec4 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1.1.post12+gaecb541
+                0.1.1.post13+g8eefec4
               </div>
             
           
@@ -282,6 +282,34 @@ G(data,s)</p>
 <dt id="jem.filters.radial">
 <code class="descclassname">jem.filters.</code><code class="descname">radial</code><span class="sig-paren">(</span><em>data</em>, <em>func</em>, <em>scale=1</em>, <em>truncate=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#radial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.radial" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotationally symmetric filter in the fourier domain with truncation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.rotate_gradient_2d">
+<code class="descclassname">jem.filters.</code><code class="descname">rotate_gradient_2d</code><span class="sig-paren">(</span><em>gx</em>, <em>gy</em>, <em>z=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_gradient_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.rotate_gradient_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 2d gradient or band pass gradient.</p>
+<p>gp = R * g</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.rotate_gradient_3d">
+<code class="descclassname">jem.filters.</code><code class="descname">rotate_gradient_3d</code><span class="sig-paren">(</span><em>gx</em>, <em>gy</em>, <em>gz</em>, <em>z=0.0</em>, <em>y=0.0</em>, <em>x=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_gradient_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.rotate_gradient_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 3d gradient or band pass gradient.</p>
+<p>gp = R * g</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.rotate_hessian_2d">
+<code class="descclassname">jem.filters.</code><code class="descname">rotate_hessian_2d</code><span class="sig-paren">(</span><em>dxx</em>, <em>dxy</em>, <em>dyy</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_hessian_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.rotate_hessian_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 2d hessian or band pass hessian.</p>
+<p>Hp = R’ * H * R</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.rotate_hessian_3d">
+<code class="descclassname">jem.filters.</code><code class="descname">rotate_hessian_3d</code><span class="sig-paren">(</span><em>dxx</em>, <em>dxy</em>, <em>dxz</em>, <em>dyy</em>, <em>dyz</em>, <em>dzz</em>, <em>z</em>, <em>y=0.0</em>, <em>x=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_hessian_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.rotate_hessian_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 3d hessian or band pass hessian.</p>
+<p>Hp = R’ * H * R</p>
 </dd></dl>
 
 </div>
