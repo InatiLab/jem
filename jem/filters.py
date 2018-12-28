@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from nibabel.eulerangles import euler2mat
 from numpy.fft import fftn, ifftn, fftshift, ifftshift
 
 
@@ -730,3 +731,93 @@ def hessian_rot(h):
 
     else:
         raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
+
+
+def rotate_gradient_2d(gx, gy, z=0.0):
+    """Rotate a 2d gradient or band pass gradient.
+
+    gp = R * g
+    """
+    R = euler2mat(z=z)[:2, :2]
+    g = np.zeros([2, gx.size], dtype=gx.dtype)
+    g[0, :] = gx.ravel()
+    g[1, :] = gy.ravel()
+    gp = R @ g
+    gxp = gp[0].reshape(gx.shape)
+    gyp = gp[1].reshape(gy.shape)
+    return gxp, gyp
+
+
+def rotate_gradient_3d(gx, gy, gz, z=0.0, y=0.0, x=0.0):
+    """Rotate a 3d gradient or band pass gradient.
+
+    gp = R * g
+    """
+    R = euler2mat(z=z, y=y, x=x)
+    g = np.zeros([3, gx.size], dtype=gx.dtype)
+    g[0, :] = gx.ravel()
+    g[1, :] = gy.ravel()
+    g[2, :] = gz.ravel()
+    gp = R @ g
+    gxp = gp[0].reshape(gx.shape)
+    gyp = gp[1].reshape(gy.shape)
+    gzp = gp[2].reshape(gz.shape)
+    return gxp, gyp, gzp
+
+
+def rotate_hessian_2d(dxx, dxy, dyy, z):
+    """Rotate a 2d hessian or band pass hessian.
+
+    Hp = R' * H * R
+    """
+    R = euler2mat(z)[:2, :2]
+
+    H = np.zeros([2, 2, dxx.size], dtype=dxx.dtype)
+    H[0, 0, :] = dxx.ravel()
+    H[0, 1, :] = dxy.ravel()
+    H[1, 0, :] = H[0, 1, :]
+    H[1, 1, :] = dyy.ravel()
+
+    #     Hp = np.zeros(H.shape, dtype=H.dtype)
+    #     for n in range(H.shape[2]):
+    #         Hp[:,:,n] = R.transpose() @ H[:,:,n] @ R
+    Hp = np.dot(np.dot(R.transpose(), H).transpose(2, 0, 1), R).transpose(1, 2, 0)
+
+    dxxp = Hp[0, 0, :].reshape(dxx.shape)
+    dxyp = Hp[0, 1, :].reshape(dxy.shape)
+    dyyp = Hp[1, 1, :].reshape(dyy.shape)
+
+    return dxxp, dxyp, dyyp
+
+
+def rotate_hessian_3d(dxx, dxy, dxz, dyy, dyz, dzz, z, y=0.0, x=0.0):
+    """Rotate a 3d hessian or band pass hessian.
+
+    Hp = R' * H * R
+    """
+    R = euler2mat(z)
+
+    H = np.zeros([3, 3, dxx.size], dtype=dxx.dtype)
+    H[0, 0, :] = dxx.ravel()
+    H[0, 1, :] = dxy.ravel()
+    H[0, 2, :] = dxz.ravel()
+    H[1, 1, :] = dyy.ravel()
+    H[1, 2, :] = dyz.ravel()
+    H[2, 2, :] = dzz.ravel()
+    H[1, 0, :] = H[0, 1, :]
+    H[2, 0, :] = H[0, 2, :]
+    H[2, 1, :] = H[1, 2, :]
+
+    #     Hp = np.zeros(H.shape, dtype=H.dtype)
+    #     for n in range(H.shape[2]):
+    #         Hp[:,:,n] = R.transpose() @ H[:,:,n] @ R
+    Hp = np.dot(np.dot(R.transpose(), H).transpose(2, 0, 1), R).transpose(1, 2, 0)
+
+    dxxp = Hp[0, 0, :].reshape(dxx.shape)
+    dxyp = Hp[0, 1, :].reshape(dxy.shape)
+    dxzp = Hp[0, 2, :].reshape(dxz.shape)
+    dyyp = Hp[1, 1, :].reshape(dyy.shape)
+    dyzp = Hp[1, 2, :].reshape(dyz.shape)
+    dzzp = Hp[2, 2, :].reshape(dzz.shape)
+
+    return dxxp, dxyp, dxzp, dyyp, dyzp, dzzp
