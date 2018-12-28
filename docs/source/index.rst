@@ -12,3 +12,5 @@ JEM Documentation
    installation
    usage
    release-history
+
+   api/index
