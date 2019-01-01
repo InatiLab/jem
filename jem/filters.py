@@ -768,7 +768,7 @@ def rotate_gradient_3d(gx, gy, gz, z=0.0, y=0.0, x=0.0):
 def rotate_hessian_2d(dxx, dxy, dyy, z):
     """Rotate a 2d hessian or band pass hessian.
 
-    Hp = R' * H * R
+    Hp = R * H * R'
     """
     R = euler2mat(z)[:2, :2]
 
@@ -780,8 +780,8 @@ def rotate_hessian_2d(dxx, dxy, dyy, z):
 
     #     Hp = np.zeros(H.shape, dtype=H.dtype)
     #     for n in range(H.shape[2]):
-    #         Hp[:,:,n] = R.transpose() @ H[:,:,n] @ R
-    Hp = np.dot(np.dot(R.transpose(), H).transpose(2, 0, 1), R).transpose(1, 2, 0)
+    #         Hp[:,:,n] = R @ H[:,:,n] @ R.transpose()
+    Hp = np.dot(np.dot(R, H).transpose(2, 0, 1), R.transpose()).transpose(1, 2, 0)
 
     dxxp = Hp[0, 0, :].reshape(dxx.shape)
     dxyp = Hp[0, 1, :].reshape(dxy.shape)
