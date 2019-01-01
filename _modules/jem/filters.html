@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.filters &mdash; JEM 0.2.0 documentation</title>
+  <title>jem.filters &mdash; JEM 0.2.0.post1+g0b10931 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.2.0
+                0.2.0.post1+g0b10931
               </div>
             
           
@@ -919,7 +919,7 @@
 <div class="viewcode-block" id="rotate_hessian_2d"><a class="viewcode-back" href="../../api/filters.html#jem.filters.rotate_hessian_2d">[docs]</a><span class="k">def</span> <span class="nf">rotate_hessian_2d</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Rotate a 2d hessian or band pass hessian.</span>
 
-<span class="sd">    Hp = R&#39; * H * R</span>
+<span class="sd">    Hp = R * H * R&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">R</span> <span class="o">=</span> <span class="n">euler2mat</span><span class="p">(</span><span class="n">z</span><span class="p">)[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
 
@@ -931,8 +931,8 @@
 
     <span class="c1">#     Hp = np.zeros(H.shape, dtype=H.dtype)</span>
     <span class="c1">#     for n in range(H.shape[2]):</span>
-    <span class="c1">#         Hp[:,:,n] = R.transpose() @ H[:,:,n] @ R</span>
-    <span class="n">Hp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">H</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">R</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#         Hp[:,:,n] = R @ H[:,:,n] @ R.transpose()</span>
+    <span class="n">Hp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">R</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="n">dxxp</span> <span class="o">=</span> <span class="n">Hp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dxx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="n">dxyp</span> <span class="o">=</span> <span class="n">Hp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dxy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
