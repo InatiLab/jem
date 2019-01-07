@@ -4,6 +4,22 @@ from nibabel.eulerangles import euler2mat
 from numpy.fft import fftn, ifftn, fftshift, ifftshift
 
 
+def _pad(d, scale):
+    """Pad for gaussian convolutions in the fourier domain"""
+    p = 4 * 2 ** scale
+    pd = np.pad(d, pad_width=p, mode="constant", constant_values=0)
+    return pd
+
+
+def _crop(d, scale):
+    """Inverse of pad"""
+    p = 4 * 2 ** scale
+    if d.ndim == 2:
+        return d[p:-p, p:-p]
+    elif d.ndim == 3:
+        return d[p:-p, p:-p, p:-p]
+
+
 def _scale_coordinates(shape, scale):
     """
     Compute the scaled image coordinates on the box [-pi,pi]^d
@@ -103,66 +119,27 @@ def _pinv(x, p=2):
     return ix
 
 
-def radial(data, func, scale=1, truncate=False):
-    """
-    Rotationally symmetric filter in the fourier domain with truncation
-    """
-
-    known_filters = ["gaussian", "dog", "laplacian"]
-    if func.lower() not in known_filters:
-        raise RuntimeError(
-            "Unsupported filter function error {}.  Must be one of {}.".format(
-                func, known_filters
-            )
-        )
-
-    # Get the radius scaled coordinate system
-    r = _radius(data.shape, scale)
-    rsq = r ** 2
-
-    # Compute filter as a function of radius
-    if func.lower() == "gaussian":
-        # Gaussian, 0th Hermite, etc.
-        g = np.exp(-0.5 * rsq)
-    elif func.lower() == "dog":
-        # Difference of Gaussians, one level apart
-        g = np.exp(-0.5 * rsq) - np.exp(-0.5 * (2.0 * rsq))
-    elif func.lower() == "derivative":
-        # Derivative of Gaussian, 1st Hermite
-        g = -1.0 / (math.pi ** 2) * (1.0 - math.pi ** 2 * rsq) * np.exp(-0.5 * rsq)
-    elif func.lower() == "laplacian":
-        # Laplacian of Gaussian, 2nd Hermite, Marr, Sombrero, Ricker, etc.
-        g = -1.0 / (math.pi ** 2) * (1.0 - math.pi ** 2 * rsq) * np.exp(-0.5 * rsq)
-    else:
-        raise RuntimeError("Unkown filter function {}.".format(func))
-
-    # Truncate on a sphere of r=pi^2
-    if truncate:
-        g[r > math.pi] = 0.0
-
-    # Apply the filter
-    output = ifftn(ifftshift(g * fftshift(fftn(data))))
-
-    # Ensure that real functions stay real
-    if np.isrealobj(data):
-        return np.real(output)
-    else:
-        return output
-
-
 def gaussian(data, scale=1):
     """
     Rotationally symmetric Gaussian filter in the fourier domain
+
+    Parametrized by a scale, resolution reduced by 2^(scale+1).
+    Assumes the pixels are all the same size.
+    Pad and crop to prevent wrap around junk.
     """
+    pd = _pad(data, scale)
 
     # Get the radius scaled coordinate system
-    r = _radius(data.shape, scale)
+    r = _radius(pd.shape, scale)
 
     # Compute filter as a function of radius
     g = np.exp(-0.5 * r ** 2)
 
     # Apply the filter
-    output = ifftn(ifftshift(g * fftshift(fftn(data))))
+    temp = ifftn(ifftshift(g * fftshift(fftn(pd))))
+
+    # Crop
+    output = _crop(temp, scale)
 
     # Ensure that real functions stay real
     if np.isrealobj(data):
@@ -242,14 +219,10 @@ def band_pass(data, scale_one, scale_two):
     Difference of two gaussians
     G(data, s1) - G(data, s2)
     """
-    r_1 = _radius(data.shape, scale_one)
-    r_2 = _radius(data.shape, scale_two)
-    g = np.exp(-0.5 * r_1 ** 2) - np.exp(-0.5 * r_2 ** 2)
-    bp = ifftn(ifftshift(g * fftshift(fftn(data))))
-    if np.isrealobj(data):
-        return np.real(bp)
-    else:
-        return bp
+    d1 = gaussian(data, scale_one)
+    d2 = gaussian(data, scale_two)
+    bp = d1 - d2
+    return bp
 
 
 def band_pass_kernel(shape, scale_one, scale_two):
@@ -272,14 +245,20 @@ def gradient(data, scale=1):
     # Gausian gradient in each direction
     # i*x*g, i*y*g, i*z*g etc.
 
+    # Pad
+    pd = _pad(data, scale)
+
     # Get the scaled coordinate system
     if data.ndim == 2:
-        x, y = _scale_coordinates(data.shape, scale)
+        x, y = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2
         g = np.exp(-0.5 * rsq)
-        temp = 1j * g * fftshift(fftn(data))
+        temp = 1j * g * fftshift(fftn(pd))
         dx = ifftn(ifftshift(x * temp))
         dy = ifftn(ifftshift(y * temp))
+        # Crop
+        dx = _crop(dx, scale)
+        dy = _crop(dy, scale)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dx = np.real(dx)
@@ -287,13 +266,17 @@ def gradient(data, scale=1):
         return [dx, dy]
 
     elif data.ndim == 3:
-        x, y, z = _scale_coordinates(data.shape, scale)
+        x, y, z = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2 + z ** 2
         g = np.exp(-0.5 * rsq)
-        temp = 1j * g * fftshift(fftn(data))
+        temp = 1j * g * fftshift(fftn(pd))
         dx = ifftn(ifftshift(x * temp))
         dy = ifftn(ifftshift(y * temp))
         dz = ifftn(ifftshift(z * temp))
+        # Crop
+        dx = _crop(dx, scale)
+        dy = _crop(dy, scale)
+        dz = _crop(dz, scale)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dx = np.real(dx)
@@ -354,15 +337,22 @@ def hessian(data, scale=1):
     # Gausian 2nd derivative in each direction
     # (i*x)*(i*y)*g, etc
 
+    # Pad
+    pd = _pad(data, scale)
+
     # Get the scaled coordinate system
     if data.ndim == 2:
-        x, y = _scale_coordinates(data.shape, scale)
+        x, y = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2
         g = np.exp(-0.5 * rsq)
-        temp = -1.0 * g * fftshift(fftn(data))
+        temp = -1.0 * g * fftshift(fftn(pd))
         dxx = ifftn(ifftshift(x * x * temp))
         dxy = ifftn(ifftshift(x * y * temp))
         dyy = ifftn(ifftshift(y * y * temp))
+        # Crop
+        dxx = _crop(dxx, scale)
+        dxy = _crop(dxy, scale)
+        dyy = _crop(dyy, scale)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dxx = np.real(dxx)
@@ -371,16 +361,23 @@ def hessian(data, scale=1):
         return [dxx, dxy, dyy]
 
     elif data.ndim == 3:
-        x, y, z = _scale_coordinates(data.shape, scale)
+        x, y, z = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2 + z ** 2
         g = np.exp(-0.5 * rsq)
-        temp = -1.0 * g * fftshift(fftn(data))
+        temp = -1.0 * g * fftshift(fftn(pd))
         dxx = ifftn(ifftshift(x * x * temp))
         dxy = ifftn(ifftshift(x * y * temp))
         dxz = ifftn(ifftshift(x * z * temp))
         dyy = ifftn(ifftshift(y * y * temp))
         dyz = ifftn(ifftshift(y * z * temp))
         dzz = ifftn(ifftshift(z * z * temp))
+        # Crop
+        dxx = _crop(dxx, scale)
+        dxy = _crop(dxy, scale)
+        dxz = _crop(dxz, scale)
+        dyy = _crop(dyy, scale)
+        dyz = _crop(dyz, scale)
+        dzz = _crop(dzz, scale)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dxx = np.real(dxx)
@@ -455,14 +452,20 @@ def gradient_band_pass(data, scale=1):
     # g = G(s) - G(s+1)
     # i*x*g, i*y*g, i*z*g etc.
 
+    # Pad to the bigger scale
+    pd = _pad(data, scale + 1)
+
     # Get the scaled coordinate system
     if data.ndim == 2:
-        x, y = _scale_coordinates(data.shape, scale)
+        x, y = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2
         g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
-        temp = 1j * g * fftshift(fftn(data))
+        temp = 1j * g * fftshift(fftn(pd))
         dx = ifftn(ifftshift(x * temp))
         dy = ifftn(ifftshift(y * temp))
+        # Crop
+        dx = _crop(dx, scale + 1)
+        dy = _crop(dy, scale + 1)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dx = np.real(dx)
@@ -470,13 +473,17 @@ def gradient_band_pass(data, scale=1):
         return [dx, dy]
 
     elif data.ndim == 3:
-        x, y, z = _scale_coordinates(data.shape, scale)
+        x, y, z = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2 + z ** 2
         g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
-        temp = 1j * g * fftshift(fftn(data))
+        temp = 1j * g * fftshift(fftn(pd))
         dx = ifftn(ifftshift(x * temp))
         dy = ifftn(ifftshift(y * temp))
         dz = ifftn(ifftshift(z * temp))
+        # Crop
+        dx = _crop(dx, scale + 1)
+        dy = _crop(dy, scale + 1)
+        dz = _crop(dz, scale + 1)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dx = np.real(dx)
@@ -541,15 +548,22 @@ def hessian_band_pass(data, scale=1):
     # from one scale to the next r**2 -> 4*r**2
     # (i*x)*(i*y)*g, etc
 
+    # Pad to the bigger scale
+    pd = _pad(data, scale + 1)
+
     # Get the scaled coordinate system
     if data.ndim == 2:
-        x, y = _scale_coordinates(data.shape, scale)
+        x, y = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2
         g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
-        temp = -1.0 * g * fftshift(fftn(data))
+        temp = -1.0 * g * fftshift(fftn(pd))
         dxx = ifftn(ifftshift(x * x * temp))
         dxy = ifftn(ifftshift(x * y * temp))
         dyy = ifftn(ifftshift(y * y * temp))
+        # Crop
+        dxx = _crop(dxx, scale + 1)
+        dxy = _crop(dxy, scale + 1)
+        dyy = _crop(dyy, scale + 1)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dxx = np.real(dxx)
@@ -558,16 +572,23 @@ def hessian_band_pass(data, scale=1):
         return [dxx, dxy, dyy]
 
     elif data.ndim == 3:
-        x, y, z = _scale_coordinates(data.shape, scale)
+        x, y, z = _scale_coordinates(pd.shape, scale)
         rsq = x ** 2 + y ** 2 + z ** 2
         g = np.exp(-0.5 * rsq) - np.exp(-0.5 * 4 * rsq)
-        temp = -1.0 * g * fftshift(fftn(data))
+        temp = -1.0 * g * fftshift(fftn(pd))
         dxx = ifftn(ifftshift(x * x * temp))
         dxy = ifftn(ifftshift(x * y * temp))
         dxz = ifftn(ifftshift(x * z * temp))
         dyy = ifftn(ifftshift(y * y * temp))
         dyz = ifftn(ifftshift(y * z * temp))
         dzz = ifftn(ifftshift(z * z * temp))
+        # Crop
+        dxx = _crop(dxx, scale + 1)
+        dxy = _crop(dxy, scale + 1)
+        dxz = _crop(dxz, scale + 1)
+        dyy = _crop(dyy, scale + 1)
+        dyz = _crop(dyz, scale + 1)
+        dzz = _crop(dzz, scale + 1)
         # Ensure that real functions stay real
         if np.isrealobj(data):
             dxx = np.real(dxx)
