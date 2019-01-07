@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Filters (jem.filters) &mdash; JEM 0.2.1.post1+g3ff4934 documentation</title>
+  <title>Filters (jem.filters) &mdash; JEM 0.2.1.post2+g0d0506f documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.2.1.post1+g3ff4934
+                0.2.1.post2+g0d0506f
               </div>
             
           
@@ -177,6 +177,9 @@ G(data, s1) - G(data, s2)</p>
 <dt id="jem.filters.gaussian">
 <code class="descclassname">jem.filters.</code><code class="descname">gaussian</code><span class="sig-paren">(</span><em>data</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.gaussian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotationally symmetric Gaussian filter in the fourier domain</p>
+<p>Parametrized by a scale, resolution reduced by 2^(scale+1).
+Assumes the pixels are all the same size.
+Pad and crop to prevent wrap around junk.</p>
 </dd></dl>
 
 <dl class="function">
@@ -276,12 +279,6 @@ G(data,s)</p>
 <dt id="jem.filters.low_pass_kernel">
 <code class="descclassname">jem.filters.</code><code class="descname">low_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#low_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.low_pass_kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Low pass filter kernel in the image domain</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="jem.filters.radial">
-<code class="descclassname">jem.filters.</code><code class="descname">radial</code><span class="sig-paren">(</span><em>data</em>, <em>func</em>, <em>scale=1</em>, <em>truncate=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#radial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.radial" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rotationally symmetric filter in the fourier domain with truncation</p>
 </dd></dl>
 
 <dl class="function">

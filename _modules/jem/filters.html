@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.filters &mdash; JEM 0.2.1.post1+g3ff4934 documentation</title>
+  <title>jem.filters &mdash; JEM 0.2.1.post2+g0d0506f documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.2.1.post1+g3ff4934
+                0.2.1.post2+g0d0506f
               </div>
             
           
@@ -153,6 +153,22 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">nibabel.eulerangles</span> <span class="k">import</span> <span class="n">euler2mat</span>
 <span class="kn">from</span> <span class="nn">numpy.fft</span> <span class="k">import</span> <span class="n">fftn</span><span class="p">,</span> <span class="n">ifftn</span><span class="p">,</span> <span class="n">fftshift</span><span class="p">,</span> <span class="n">ifftshift</span>
+
+
+<span class="k">def</span> <span class="nf">_pad</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pad for gaussian convolutions in the fourier domain&quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">scale</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span>
+
+
+<span class="k">def</span> <span class="nf">_crop</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inverse of pad&quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">scale</span>
+    <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_scale_coordinates</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
@@ -254,66 +270,27 @@
     <span class="k">return</span> <span class="n">ix</span>
 
 
-<div class="viewcode-block" id="radial"><a class="viewcode-back" href="../../api/filters.html#jem.filters.radial">[docs]</a><span class="k">def</span> <span class="nf">radial</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Rotationally symmetric filter in the fourier domain with truncation</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">known_filters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_filters</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported filter function error </span><span class="si">{}</span><span class="s2">.  Must be one of </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">func</span><span class="p">,</span> <span class="n">known_filters</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-
-    <span class="c1"># Get the radius scaled coordinate system</span>
-    <span class="n">r</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">rsq</span> <span class="o">=</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span>
-
-    <span class="c1"># Compute filter as a function of radius</span>
-    <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
-        <span class="c1"># Gaussian, 0th Hermite, etc.</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;dog&quot;</span><span class="p">:</span>
-        <span class="c1"># Difference of Gaussians, one level apart</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;derivative&quot;</span><span class="p">:</span>
-        <span class="c1"># Derivative of Gaussian, 1st Hermite</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;laplacian&quot;</span><span class="p">:</span>
-        <span class="c1"># Laplacian of Gaussian, 2nd Hermite, Marr, Sombrero, Ricker, etc.</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unkown filter function </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
-
-    <span class="c1"># Truncate on a sphere of r=pi^2</span>
-    <span class="k">if</span> <span class="n">truncate</span><span class="p">:</span>
-        <span class="n">g</span><span class="p">[</span><span class="n">r</span> <span class="o">&gt;</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-    <span class="c1"># Apply the filter</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))))</span>
-
-    <span class="c1"># Ensure that real functions stay real</span>
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">output</span></div>
-
-
 <div class="viewcode-block" id="gaussian"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gaussian">[docs]</a><span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Rotationally symmetric Gaussian filter in the fourier domain</span>
+
+<span class="sd">    Parametrized by a scale, resolution reduced by 2^(scale+1).</span>
+<span class="sd">    Assumes the pixels are all the same size.</span>
+<span class="sd">    Pad and crop to prevent wrap around junk.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
     <span class="c1"># Get the radius scaled coordinate system</span>
-    <span class="n">r</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
     <span class="c1"># Compute filter as a function of radius</span>
     <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="c1"># Apply the filter</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))))</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))))</span>
+
+    <span class="c1"># Crop</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
     <span class="c1"># Ensure that real functions stay real</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
@@ -393,14 +370,10 @@
 <span class="sd">    Difference of two gaussians</span>
 <span class="sd">    G(data, s1) - G(data, s2)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">r_1</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">)</span>
-    <span class="n">r_2</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">)</span>
-    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r_1</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r_2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">bp</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))))</span>
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">bp</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">bp</span></div>
+    <span class="n">d1</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">)</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">)</span>
+    <span class="n">bp</span> <span class="o">=</span> <span class="n">d1</span> <span class="o">-</span> <span class="n">d2</span>
+    <span class="k">return</span> <span class="n">bp</span></div>
 
 
 <div class="viewcode-block" id="band_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">band_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">):</span>
@@ -423,14 +396,20 @@
     <span class="c1"># Gausian gradient in each direction</span>
     <span class="c1"># i*x*g, i*y*g, i*z*g etc.</span>
 
+    <span class="c1"># Pad</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
     <span class="c1"># Get the scaled coordinate system</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
@@ -438,13 +417,17 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">]</span>
 
     <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
@@ -505,15 +488,22 @@
     <span class="c1"># Gausian 2nd derivative in each direction</span>
     <span class="c1"># (i*x)*(i*y)*g, etc</span>
 
+    <span class="c1"># Pad</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
     <span class="c1"># Get the scaled coordinate system</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
@@ -522,16 +512,23 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">]</span>
 
     <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dxz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dyz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dzz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dxz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dyz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dzz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dzz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
@@ -606,14 +603,20 @@
     <span class="c1"># g = G(s) - G(s+1)</span>
     <span class="c1"># i*x*g, i*y*g, i*z*g etc.</span>
 
+    <span class="c1"># Pad to the bigger scale</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
     <span class="c1"># Get the scaled coordinate system</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
@@ -621,13 +624,17 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">]</span>
 
     <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
@@ -692,15 +699,22 @@
     <span class="c1"># from one scale to the next r**2 -&gt; 4*r**2</span>
     <span class="c1"># (i*x)*(i*y)*g, etc</span>
 
+    <span class="c1"># Pad to the bigger scale</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
     <span class="c1"># Get the scaled coordinate system</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
@@ -709,16 +723,23 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">]</span>
 
     <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
         <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dxz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dyz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
         <span class="n">dzz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dxz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dyz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">dzz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dzz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Ensure that real functions stay real</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
