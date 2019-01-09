@@ -82,7 +82,11 @@ def global_scale(data):
     # Get the signal likelihood
     w_s = signal_likelihood(f)
 
-    # Get the noise level
-    sigma_n = noise_level(f)
+    # Get the noise level and convert to signal likelihood
+    # note that for any reasonable SNR, the conversion
+    # from noise_mad is essentially moot because
+    # 1 - exp(-x) \approx x for x<<1
+    noise_mad = noise_level(f)
+    sigma_n = signal_likelihood(noise_mad)
 
     return f, w_s, sigma_n

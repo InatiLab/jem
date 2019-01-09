@@ -4,16 +4,39 @@ from nibabel.eulerangles import euler2mat
 from numpy.fft import fftn, ifftn, fftshift, ifftshift
 
 
+def _get_dim(data):
+    """
+    Data dimensionality with error checking
+    """
+
+    if data.ndim == 2:
+        ndim = 2
+    elif data.ndim == 3:
+        ndim = 3
+    else:
+        raise RuntimeError(
+            "Unsupported number of dimensions {}. We only supports 2 or 3D arrays.".format(
+                data.ndim
+            )
+        )
+
+    return ndim
+
+
 def _pad(d, scale):
-    """Pad for gaussian convolutions in the fourier domain"""
-    p = 4 * 2 ** scale
+    """Pad for gaussian convolutions in the fourier domain
+
+    Only need to pad by a quarter width on either side which
+    gives 1/2 a kernel width when wrapped.
+    """
+    p = 2 * 2 ** scale
     pd = np.pad(d, pad_width=p, mode="constant", constant_values=0)
     return pd
 
 
 def _crop(d, scale):
     """Inverse of pad"""
-    p = 4 * 2 ** scale
+    p = 2 * 2 ** scale
     if d.ndim == 2:
         return d[p:-p, p:-p]
     elif d.ndim == 3:
@@ -105,18 +128,13 @@ def _crop_filter(input_filter, scale, radius=None):
     return output_filter
 
 
-def _pinv(x, p=2):
+def _pinv(x, sigma):
     """
     Pseudoinverse with regularization
 
-    Use the lowest p percent of the signal as an estimate of the noise floor
     """
-    d = np.abs(x)
-    # find the lowest p% of the non-zero signal
-    # to use for regularization
-    s = np.percentile(d[d > 0], [p])
-    ix = x / (d ** 2 + s ** 2)
-    return ix
+    xinv = x / (x ** 2 + sigma ** 2)
+    return xinv
 
 
 def gaussian(data, scale=1):
@@ -168,7 +186,7 @@ def gaussian_kernel(shape, scale=1):
     return im_filter
 
 
-def high_pass(data, scale):
+def high_pass(data, scale=1):
     """
     High pass filter
     data - G(data,s)
@@ -178,7 +196,7 @@ def high_pass(data, scale):
     return hp
 
 
-def high_pass_kernel(shape, scale):
+def high_pass_kernel(shape, scale=1):
     """
     High pass filter kernel in the image domain
     """
@@ -193,7 +211,7 @@ def high_pass_kernel(shape, scale):
     return hp
 
 
-def low_pass(data, scale):
+def low_pass(data, scale=1):
     """
     Low pass filter
     G(data,s)
@@ -203,7 +221,7 @@ def low_pass(data, scale):
     return lp
 
 
-def low_pass_kernel(shape, scale):
+def low_pass_kernel(shape, scale=1):
     """
     Low pass filter kernel in the image domain
     """
@@ -213,27 +231,27 @@ def low_pass_kernel(shape, scale):
     return lp
 
 
-def band_pass(data, scale_one, scale_two):
+def band_pass(data, scale=1):
     """
     Band pass filter
     Difference of two gaussians
-    G(data, s1) - G(data, s2)
+    G(data, s) - G(data, s+1)
     """
-    d1 = gaussian(data, scale_one)
-    d2 = gaussian(data, scale_two)
+    d1 = gaussian(data, scale)
+    d2 = gaussian(data, scale + 1)
     bp = d1 - d2
     return bp
 
 
-def band_pass_kernel(shape, scale_one, scale_two):
+def band_pass_kernel(shape, scale=1):
     """
     Band pass filter kernel in the image domain
     """
-    r_1 = _radius(shape, scale_one)
-    r_2 = _radius(shape, scale_two)
+    r_1 = _radius(shape, scale)
+    r_2 = _radius(shape, scale + 1)
     g = np.exp(-0.5 * r_1 ** 2) - np.exp(-0.5 * r_2 ** 2)
     bp = np.real(fftshift(ifftn(ifftshift(g))))
-    bp = _crop_filter(bp, scale_two)
+    bp = _crop_filter(bp, scale + 1)
     return bp
 
 
@@ -657,15 +675,24 @@ def hessian_band_pass_kernel(shape, scale=1):
         )
 
 
-def hessian_power(h):
+def gradient_amplitude(g):
     """
-    Power in the hessian filter band
-    Frobenius norm squared
+    Amplitude in the gradient filter band
+    2/Frobenius norm
     """
-    if len(h) == 2:
-        p = np.abs(h[0]) ** 2 + 2 * np.abs(h[1]) ** 2 + np.abs(h[2]) ** 2
+    amp = np.sqrt(np.sum(np.abs(g) ** 2, axis=0))
+    return amp
+
+
+def hessian_amplitude(h):
+    """
+    Amplitude in the hessian filter band
+    Frobenius norm
+    """
+    if len(h) == 3:
+        a = np.sqrt(np.abs(h[0]) ** 2 + 2 * np.abs(h[1]) ** 2 + np.abs(h[2]) ** 2)
     elif len(h) == 6:
-        p = (
+        a = np.sqrt(
             np.abs(h[0]) ** 2
             + 2 * np.abs(h[1]) ** 2
             + 2 * np.abs(h[2]) ** 2
@@ -675,25 +702,7 @@ def hessian_power(h):
         )
     else:
         raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
-    return p
-
-
-def gradient_rot(g):
-    """
-    Rotational invariant of the gradient
-    """
-    if len(g) == 2:
-        # [dx, dy]
-        g = np.sqrt(np.abs(g[0]) ** 2 + np.abs(g[1]) ** 2)
-
-    elif len(g) == 3:
-        # [dx, dy, dz]
-        g = np.sqrt(np.abs(g[0]) ** 2 + np.abs(g[1]) ** 2 + np.abs(g[2]))
-
-    else:
-        raise RuntimeError("Unsupported number of dimensions {}.".format(len(g)))
-
-    return g
+    return a
 
 
 def hessian_rot(h):
@@ -713,7 +722,7 @@ def hessian_rot(h):
             np.abs(h[0]) ** 2 + 2 * np.abs(h[1]) ** 2 + np.abs(h[2]) ** 2
         )
 
-        return (trace, det, frobenius)
+        return trace, det, frobenius
 
     elif len(h) == 6:
         # [dxx, dxy, dxz, dyy, dyz, dzz]
@@ -748,7 +757,7 @@ def hessian_rot(h):
             + np.abs(h[5]) ** 2
         )
 
-        return (trace, sec, det, frobenius)
+        return trace, sec, det, frobenius
 
     else:
         raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
@@ -842,3 +851,75 @@ def rotate_hessian_3d(dxx, dxy, dxz, dyy, dyz, dzz, z, y=0.0, x=0.0):
     dzzp = Hp[2, 2, :].reshape(dzz.shape)
 
     return dxxp, dxyp, dxzp, dyyp, dyzp, dzzp
+
+
+def weighted_low_pass(d, w, sigma, scale=1):
+    """Weighted low pass filter
+    """
+    a = gaussian(w * d, scale)
+    b = gaussian(w, scale)
+    f = a * _pinv(b, sigma)
+
+    return f
+
+
+def weighted_high_pass(d, w, sigma, scale=1):
+    """Weighted high pass filter
+    """
+    f = d - weighted_low_pass(d, w, sigma, scale)
+
+    return f
+
+
+def weighted_band_pass(d, w, sigma, scale=1):
+    """Weighted band pass filter
+    """
+    a = band_pass(w * d, scale)
+    b = gaussian(w, scale + 1)
+    f = a * _pinv(b, sigma)
+
+    return f
+
+
+def weighted_gradient(d, w, sigma, scale=1):
+    """Weighted gradient filter
+    """
+    a = gradient(w * d, scale)
+    b = gaussian(w, scale + 1)
+    for f in a:
+        f = f * _pinv(b, sigma)
+
+    return a
+
+
+def weighted_gradient_band_pass(d, w, sigma, scale=1):
+    """Weighted band pass gradient filter
+    """
+    a = gradient_band_pass(w * d, scale)
+    b = gaussian(w, scale + 1)
+    for f in a:
+        f = f * _pinv(b, sigma)
+
+    return a
+
+
+def weighted_hessian(d, w, sigma, scale=1):
+    """Weighted hessian filter
+    """
+    a = hessian(w * d, scale)
+    b = gaussian(w, scale + 1)
+    for f in a:
+        f = f * _pinv(b, sigma)
+
+    return a
+
+
+def weighted_hessian_band_pass(d, w, sigma, scale=1):
+    """Weighted band pass hessian filter
+    """
+    a = hessian_band_pass(w * d, scale)
+    b = gaussian(w, scale + 1)
+    for f in a:
+        f = f * _pinv(b, sigma)
+
+    return a

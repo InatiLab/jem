@@ -51,7 +51,7 @@ setup(
     entry_points={
         "console_scripts": [
             # 'some.module:some_function',
-            "signal_mask=jem.cli:signal_mask",
+            "contrast_normalization=jem.cli:contrast_normalization",
             "coil_correction=jem.cli:coil_correction",
             "riff=jem.cli:compute_riff",
         ]

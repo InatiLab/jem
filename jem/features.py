@@ -1,7 +1,22 @@
 import numpy as np
-from .filters import high_pass, low_pass
-from .filters import band_pass, gradient_band_pass, hessian_band_pass
-from .filters import gradient_rot, hessian_rot
+
+from .filters import (
+    _pinv,
+    high_pass,
+    low_pass,
+    band_pass,
+    gradient_band_pass,
+    gradient_amplitude,
+    hessian_band_pass,
+    hessian_amplitude,
+    hessian_rot,
+    weighted_high_pass,
+    weighted_low_pass,
+    weighted_band_pass,
+    weighted_gradient_band_pass,
+    weighted_hessian_band_pass,
+)
+from .signal_stats import global_scale
 
 
 # Number of spatial scales
@@ -11,23 +26,21 @@ NUM_SCALES = 3
 NORMALIZATION_SCALE = 5
 
 
-def _get_dim(data):
+def _normalize_bpd_filters(f, w, sigma, normalization_scale=NORMALIZATION_SCALE):
+    """In place weighted local normalization of a set of band pass derivative filters
     """
-    Data dimensionality with error checking
-    """
+    for scale in range(len(f)):
+        amp = np.abs(f[scale]["bandpass"][0])
+        gain = local_gain_field(amp, w, sigma, normalization_scale)
+        f[scale]["bandpass"] = [x * gain for x in f[scale]["bandpass"]]
 
-    if data.ndim == 2:
-        ndim = 2
-    elif data.ndim == 3:
-        ndim = 3
-    else:
-        raise RuntimeError(
-            "Unsupported number of dimensions {}. We only supports 2 or 3D arrays.".format(
-                data.ndim
-            )
-        )
+        amp = gradient_amplitude(f[scale]["gradient"])
+        gain = local_gain_field(amp, w, sigma, normalization_scale)
+        f[scale]["gradient"] = [x * gain for x in f[scale]["gradient"]]
 
-    return ndim
+        amp = hessian_amplitude(f[scale]["hessian"])
+        gain = local_gain_field(amp, w, sigma, normalization_scale)
+        f[scale]["hessian"] = [x * gain for x in f[scale]["hessian"]]
 
 
 def rectify(data, polarity=1):
@@ -42,145 +55,133 @@ def rectify(data, polarity=1):
     return output
 
 
-def input_normalization(data, scale=NORMALIZATION_SCALE):
+def local_gain_field(f, w, sigma, scale=NORMALIZATION_SCALE):
     """
-    Normalize in a manner similar to the retina
+    Local gain field
+    Inverse of the local gain, i.e. multiply by this for local divisive normalization
     """
-    z = high_pass(data, scale)
-    a = np.abs(z)
-    sigma = np.mean(a)
-    f = sigma + low_pass(a, scale)
-    y = data / f
+    gain = _pinv(weighted_low_pass(f, w, sigma, scale), sigma)
 
-    return y
+    return gain
 
 
-def front_end_features(data, nscales=NUM_SCALES, normalization_scale=None):
+def local_power_law_normalization(data, w, sigma, scale=NORMALIZATION_SCALE):
     """
-    Compute multi-scale image features from the zeroth, first, and
-    second order gaussian derivatives with divisive normalization
+    Local normalization assuming power law, <d> = <d**2>
+    """
+    a = weighted_low_pass(np.abs(data), w, sigma, scale)
+    b = weighted_low_pass(np.abs(data) ** 2, w, sigma, scale)
+    f = data * a * _pinv(b, sigma)
 
-    :param data:  2D or 3D numpy array
+    return f
+
+
+def local_contrast_normalization(d, w=None, sigma=0.001, scale=NORMALIZATION_SCALE):
+    """
+    Local contrast normalization
+    """
+    if w is not None:
+        dev = weighted_high_pass(d, w, sigma, scale)
+        lc = dev * local_gain_field(np.abs(dev), w, sigma, scale)
+    else:
+        dev = high_pass(d, scale)
+        lc = dev * _pinv(low_pass(np.abs(dev), scale), sigma)
+
+    return lc
+
+
+def band_pass_derivative_filters(
+    d,
+    w=None,
+    sigma=0.001,
+    num_scales=NUM_SCALES,
+    normalization_scale=NORMALIZATION_SCALE,
+):
+    """Multi-scale image filters from the zeroth, first, and
+    second order gaussian derivatives with signal likelihood weighting
+
+    :param d: contrast_normalized 2D or 3D numpy array
+    :param w: signal likelihood
+    :param sigma: noise level
     :param nscales: int number of scales
-    :normalization_scale: int scale for stage 1 input normalization
-    :return: list of 2D or 3D numpy arrays and list of names
+    :return: list, one dictionary per level
+
+    The multi scale bandpass derivatives are organized by scale,
+    zero (band pass), first (gradient), second (hessian)
     """
 
-    if normalization_scale is None:
-        normalization_scale = NORMALIZATION_SCALE
-    if normalization_scale < nscales:
-        raise RuntimeError(
-            "Normalization scale cannot be less than the number of Scales."
-        )
+    # Initialize the features list
+    bpdf = [{} for _scale in range(num_scales)]
 
-    # Initialize the features list and the names list
-    t = []
-    names = []
-
-    # Stage 1: High pass filter and local normalization
-    d = input_normalization(data, scale=normalization_scale)
-
-    # Stage 2: Feature generation
-    # The features are organized by level
-    # At each level:
-    #    bandpass
-    #    gradient
-    #    hessian
-
-    for lev in range(nscales):
+    for scale in range(num_scales):
         # Bandpass: zeroth order gaussian derivative
-        feat = band_pass(d, scale_one=lev, scale_two=lev + 1)
-        t.append(feat)
-        names.append(f"Band Pass L{lev}")
+        if w is not None:
+            bpdf[scale]["bandpass"] = [weighted_band_pass(d, w, sigma, scale)]
+        else:
+            bpdf[scale]["bandpass"] = [band_pass(d, scale)]
 
         # Gradient: first order gaussian derivates
-        feat = gradient_band_pass(d, scale=lev)
-        for n in range(len(feat)):
-            t.append(feat[n])
-            names.append(f"Gradient L{lev}M{n}")
+        if w is not None:
+            bpdf[scale]["gradient"] = weighted_gradient_band_pass(d, w, sigma, scale)
+        else:
+            bpdf[scale]["gradient"] = gradient_band_pass(d, scale)
 
         # Hessian: second order gaussian derivatives
-        feat = hessian_band_pass(d, scale=lev)
-        for n in range(len(feat)):
-            t.append(feat[n])
-            names.append(f"Hessian L{lev}M{n}")
+        if w is not None:
+            bpdf[scale]["hessian"] = weighted_hessian_band_pass(d, w, sigma, scale)
+        else:
+            bpdf[scale]["hessian"] = hessian_band_pass(d, scale)
 
-    return t, names
+    # Local gain control
+    _normalize_bpd_filters(bpdf, w, sigma, normalization_scale)
+
+    return bpdf
 
 
-def riff(data, nscales=NUM_SCALES, normalization_scale=None):
+def rotational_invariants(f):
+    """Compute rotational invariants of a set of band pass derivative filters
     """
-    Compute multi-scale rotationally invariant image features
-    from the zeroth, first, and second order gaussian derivatives
-    with divisive normalization
+    # At each level
+    #    bandpass:
+    #       2 rotational invariant: bp, |bp|
+    #    gradient:
+    #       1 rotational invariant: |g|
+    #    hessian:
+    #       in 2D, 3 rotational invariants: Tr(H), Det(H), |H|
+    #       in 3D, 4 rotational invariants: Tr(H), Det(H), Sec, |H|
 
-    :param data:  2D or 3D numpy array
-    :param nscales: int number of scales
-    :normalization_scale: int scale for stage 1 input normalization
-    :return: list of 3*nscales+1 2D or 3D numpy arrays and list of names
+    # Initialize the features list
+    num_scales = len(f)
+    rot = [{} for _scale in range(num_scales)]
+
+    for scale in range(num_scales):
+        # G0
+        rot[scale]["bandpass"] = [
+            f[scale]["bandpass"][0],
+            np.abs(f[scale]["bandpass"][0]),
+        ]
+        # G1
+        rot[scale]["gradient"] = [gradient_amplitude(f[scale]["gradient"])]
+        # G2
+        rot[scale]["hessian"] = list(hessian_rot(f[scale]["hessian"]))
+
+    return rot
+
+
+def riff(data, num_scales=NUM_SCALES, normalization_scale=NORMALIZATION_SCALE):
+    """Rotational invariant front end features
     """
 
-    if normalization_scale is None:
-        normalization_scale = NORMALIZATION_SCALE
-    if normalization_scale < nscales:
-        raise RuntimeError(
-            "Normalization scale cannot be less than the number of Scales."
-        )
+    # Global scaling, signal likelihood, noise level
+    f, w, sigma = global_scale(data)
 
-    # Initialize the textures list and the names list
-    t = []
-    names = []
+    # Local contrast normalization
+    f_c = local_contrast_normalization(f, w, sigma, normalization_scale)
 
-    # Stage 1: High pass filter and local normalization
-    d = input_normalization(data, scale=normalization_scale)
+    # Multi-scale band pass derivative filters
+    bpdf = band_pass_derivative_filters(f_c, w, sigma, num_scales, normalization_scale)
 
-    # Stage 2: Feature generation
-    # The features are organized by level
-    # At each level:
-    #    bandpass (2 rotational invariant: bp, |bp|)
-    #    gradient (1 rotational invariant: |g|)
-    #    hessian (4 rotational invariants: Tr(H), Det(H), Sec, |H|)
-    #  Keep a running total of the total power from each feature
-    total_power = 0.0
+    # Rotational invariants
+    rot = rotational_invariants(bpdf)
 
-    for lev in range(nscales):
-        # Bandpass (difference of adjacent gaussians)
-        feat = band_pass(d, scale_one=lev, scale_two=lev + 1)
-        t.append(feat)
-        names.append(f"Band Pass S{lev}")
-        t.append(np.abs(feat))
-        names.append(f"Band Pass Magnitude S{lev}")
-        total_power += np.abs(feat) ** 2
-
-        # Gradient
-        g = gradient_band_pass(d, scale=lev)
-        feat = gradient_rot(g)
-        t.append(feat)
-        names.append(f"Gradient Magnitude S{lev}")
-        # The power is the square of the gradient amplitude
-        total_power += feat ** 2
-
-        # The next set of features are the rotational invariants of the
-        # second order gaussian derivatives
-        h = hessian_band_pass(d, scale=lev)
-        feat = hessian_rot(h)
-        t.append(feat[0])
-        names.append(f"Laplacian S{lev}")
-        if data.ndim == 2:
-            t.append(feat[1])
-            names.append(f"Hessian Det S{lev}")
-            t.append(feat[2])
-            names.append(f"Hessian Magnitude S{lev}")
-            # The power is the the square of the Frobenius norm
-            total_power += feat[2] ** 2
-        elif data.ndim == 3:
-            t.append(feat[1])
-            names.append(f"Hessian R2 S{lev}")
-            t.append(feat[2])
-            names.append(f"Hessian Det S{lev}")
-            t.append(feat[3])
-            names.append(f"Hessian Magnitude S{lev}")
-            # The power is the the square of the Frobenius norm
-            total_power += feat[3] ** 2
-
-    return t, names
+    return rot
