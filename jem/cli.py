@@ -3,8 +3,14 @@
 import click
 import nibabel
 import numpy as np
-from .signal_stats import signal_likelihood
-from .features import input_normalization, riff, NUM_SCALES, NORMALIZATION_SCALE
+from .signal_stats import global_scale
+from .features import (
+    local_power_law_normalization,
+    local_contrast_normalization,
+    riff,
+    NUM_SCALES,
+    NORMALIZATION_SCALE,
+)
 
 
 def _check_image_compatibility(images):
@@ -23,43 +29,33 @@ def _check_image_compatibility(images):
 
 @click.command()
 @click.option(
-    "--threshold", type=click.FLOAT, default=0.7, help="Signal likelihood threshold."
-)
-@click.option(
     "--output",
     type=click.STRING,
-    default="signal_mask.nii",
-    help="Output filename for the coil signal mask.",
+    default="out.nii",
+    help="Output filename for the contrast normalized image.",
 )
-@click.argument("input_images", nargs=-1, type=click.STRING)
-def signal_mask(input_images, threshold, output):
-    """Compute signal mask from one or more images."""
-
-    click.echo("Computing signal mask...")
+@click.option(
+    "--scale", type=click.INT, default=NORMALIZATION_SCALE, help="Scale for smoothing."
+)
+@click.argument("input_image", type=click.STRING)
+def contrast_normalization(input_image, scale, output):
+    """Automatic local contrast normalization.
+    """
 
     # open the images
-    images = [nibabel.load(x) for x in input_images]
+    im = nibabel.load(input_image)
 
-    # all other images must have matching orientation/dimensions/etc.
-    _check_image_compatibility(images)
+    # load the image data and the coil correction data and apply
+    data = im.get_data().astype(np.float32)
+    f, w, sigma = global_scale(data)
+    lc = local_contrast_normalization(data, w, sigma, scale=scale)
 
-    # sum the input inputs
-    im_shape = images[0].shape
-    a = np.zeros(im_shape, dtype="float32")
-    for im in images:
-        a += im.get_data()
+    # write out the result as floating point and preserve the header
+    out_im = type(im)(lc.astype(np.float32), affine=None, header=im.header)
+    out_im.set_data_dtype(np.float32)
+    out_im.to_filename(output)
 
-    # compute the signal likelihood and threshold
-    mask = signal_likelihood(a) > threshold
-
-    # write out the result in the same format and preserve the header
-    out_image = type(images[0])(
-        mask.astype(np.float32), affine=None, header=images[0].header
-    )
-
-    out_image.to_filename(output)
-
-    click.echo("Wrote signal mask to {}.".format(output))
+    click.echo("Wrote coil contrast normalized image to {}.".format(output))
 
 
 @click.command()
@@ -70,10 +66,7 @@ def signal_mask(input_images, threshold, output):
     help="Output filename for the corrected image.",
 )
 @click.option(
-    "--scale",
-    type=click.INT,
-    default=NORMALIZATION_SCALE,
-    help="Scale for high pass filtering and smoothing.",
+    "--scale", type=click.INT, default=NORMALIZATION_SCALE, help="Scale for smoothing."
 )
 @click.argument("input_image", type=click.STRING)
 def coil_correction(input_image, scale, output):
@@ -83,12 +76,14 @@ def coil_correction(input_image, scale, output):
     im = nibabel.load(input_image)
 
     # load the image data and the coil correction data and apply
-    data = im.get_data().astype("float32")
-    data_corr = input_normalization(data, scale=scale)
+    data = im.get_data().astype(np.float32)
+    f, w, sigma = global_scale(data)
+    data_corr = local_power_law_normalization(data, w, sigma, scale=scale)
 
     # write out the result as floating point and preserve the header
-    out_image = type(im)(data_corr, affine=None, header=im.header)
-    out_image.to_filename(output)
+    out_im = type(im)(data_corr.astype(np.float32), affine=None, header=im.header)
+    out_im.set_data_dtype(np.float32)
+    out_im.to_filename(output)
 
     click.echo("Wrote coil intensity corrected image to {}.".format(output))
 
@@ -117,20 +112,22 @@ def compute_riff(input_image, nscales, normalization_scale, output):
 
     # open the images
     im = nibabel.load(input_image)
+    data = im.get_data().astype(np.float32)
 
-    # compute the textures
-    t, names = riff(
-        im.get_data().astype("float32"),
-        nscales=nscales,
-        normalization_scale=normalization_scale,
-    )
-    nfeats = len(t)
-    out = np.zeros([*t[0].shape, nfeats], t[0].dtype)
-    for f in range(nfeats):
-        out[..., f] = t[f]
+    # compute the rotationally invariant features
+    rot = riff(data, num_scales=nscales, normalization_scale=normalization_scale)
+
+    # convert to single precision and smush into a single array
+    # with feature number as the fourth dimension
+    feats = []
+    for scale in rot:
+        for feat in scale["bandpass"] + scale["gradient"] + scale["hessian"]:
+            feats.append(feat.astype(np.float32))
+    feats = np.stack(feats, axis=-1)
 
     # write out the result in the same format and preserve the header
-    out_image = type(im)(out, affine=None, header=im.header)
-    out_image.to_filename(output)
+    out_im = type(im)(feats, affine=None, header=im.header)
+    out_im.set_data_dtype(np.float32)
+    out_im.to_filename(output)
 
     click.echo(f"Wrote rotationally invariant features to {output}.")
