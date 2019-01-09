@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Filters (jem.filters) &mdash; JEM 0.2.1.post2+g0d0506f documentation</title>
+  <title>Filters (jem.filters) &mdash; JEM 0.2.1.post3+g3e77ed4 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.2.1.post2+g0d0506f
+                0.2.1.post3+g3e77ed4
               </div>
             
           
@@ -161,15 +161,15 @@
 <span id="filters-jem-filters"></span><span id="jem-filters"></span><h1>Filters (<code class="docutils literal notranslate"><span class="pre">jem.filters</span></code>)<a class="headerlink" href="#module-jem.filters" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="jem.filters.band_pass">
-<code class="descclassname">jem.filters.</code><code class="descname">band_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale_one</em>, <em>scale_two</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#band_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.band_pass" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.filters.</code><code class="descname">band_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#band_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.band_pass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Band pass filter
 Difference of two gaussians
-G(data, s1) - G(data, s2)</p>
+G(data, s) - G(data, s+1)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="jem.filters.band_pass_kernel">
-<code class="descclassname">jem.filters.</code><code class="descname">band_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale_one</em>, <em>scale_two</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#band_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.band_pass_kernel" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.filters.</code><code class="descname">band_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#band_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.band_pass_kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Band pass filter kernel in the image domain</p>
 </dd></dl>
 
@@ -195,6 +195,13 @@ Pad and crop to prevent wrap around junk.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="jem.filters.gradient_amplitude">
+<code class="descclassname">jem.filters.</code><code class="descname">gradient_amplitude</code><span class="sig-paren">(</span><em>g</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gradient_amplitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.gradient_amplitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amplitude in the gradient filter band
+2/Frobenius norm</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="jem.filters.gradient_band_pass">
 <code class="descclassname">jem.filters.</code><code class="descname">gradient_band_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gradient_band_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.gradient_band_pass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gradient, Gaussian 1st order partial derivative filter in the fourier domain</p>
@@ -213,15 +220,16 @@ Pad and crop to prevent wrap around junk.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="jem.filters.gradient_rot">
-<code class="descclassname">jem.filters.</code><code class="descname">gradient_rot</code><span class="sig-paren">(</span><em>g</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gradient_rot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.gradient_rot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rotational invariant of the gradient</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="jem.filters.hessian">
 <code class="descclassname">jem.filters.</code><code class="descname">hessian</code><span class="sig-paren">(</span><em>data</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.hessian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hessian, Gaussian 2nd order partial derivatives filter in the fourier domain</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.hessian_amplitude">
+<code class="descclassname">jem.filters.</code><code class="descname">hessian_amplitude</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_amplitude"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.hessian_amplitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amplitude in the hessian filter band
+Frobenius norm</p>
 </dd></dl>
 
 <dl class="function">
@@ -243,13 +251,6 @@ Pad and crop to prevent wrap around junk.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="jem.filters.hessian_power">
-<code class="descclassname">jem.filters.</code><code class="descname">hessian_power</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.hessian_power" title="Permalink to this definition">¶</a></dt>
-<dd><p>Power in the hessian filter band
-Frobenius norm squared</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="jem.filters.hessian_rot">
 <code class="descclassname">jem.filters.</code><code class="descname">hessian_rot</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_rot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.hessian_rot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotational invariants of the hessian</p>
@@ -257,27 +258,27 @@ Frobenius norm squared</p>
 
 <dl class="function">
 <dt id="jem.filters.high_pass">
-<code class="descclassname">jem.filters.</code><code class="descname">high_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#high_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.high_pass" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.filters.</code><code class="descname">high_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#high_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.high_pass" title="Permalink to this definition">¶</a></dt>
 <dd><p>High pass filter
 data - G(data,s)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="jem.filters.high_pass_kernel">
-<code class="descclassname">jem.filters.</code><code class="descname">high_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#high_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.high_pass_kernel" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.filters.</code><code class="descname">high_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#high_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.high_pass_kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>High pass filter kernel in the image domain</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="jem.filters.low_pass">
-<code class="descclassname">jem.filters.</code><code class="descname">low_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#low_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.low_pass" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.filters.</code><code class="descname">low_pass</code><span class="sig-paren">(</span><em>data</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#low_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.low_pass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Low pass filter
 G(data,s)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="jem.filters.low_pass_kernel">
-<code class="descclassname">jem.filters.</code><code class="descname">low_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#low_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.low_pass_kernel" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.filters.</code><code class="descname">low_pass_kernel</code><span class="sig-paren">(</span><em>shape</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#low_pass_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.low_pass_kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Low pass filter kernel in the image domain</p>
 </dd></dl>
 
@@ -307,6 +308,48 @@ G(data,s)</p>
 <code class="descclassname">jem.filters.</code><code class="descname">rotate_hessian_3d</code><span class="sig-paren">(</span><em>dxx</em>, <em>dxy</em>, <em>dxz</em>, <em>dyy</em>, <em>dyz</em>, <em>dzz</em>, <em>z</em>, <em>y=0.0</em>, <em>x=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_hessian_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.rotate_hessian_3d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotate a 3d hessian or band pass hessian.</p>
 <p>Hp = R’ * H * R</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_band_pass">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_band_pass</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_band_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_band_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted band pass filter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_gradient">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_gradient</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_gradient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted gradient filter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_gradient_band_pass">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_gradient_band_pass</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_gradient_band_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_gradient_band_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted band pass gradient filter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_hessian">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_hessian</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_hessian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted hessian filter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_hessian_band_pass">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_hessian_band_pass</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_hessian_band_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_hessian_band_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted band pass hessian filter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_high_pass">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_high_pass</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_high_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_high_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted high pass filter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.filters.weighted_low_pass">
+<code class="descclassname">jem.filters.</code><code class="descname">weighted_low_pass</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#weighted_low_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.filters.weighted_low_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted low pass filter</p>
 </dd></dl>
 
 </div>

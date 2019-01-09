@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.filters &mdash; JEM 0.2.1.post2+g0d0506f documentation</title>
+  <title>jem.filters &mdash; JEM 0.2.1.post3+g3e77ed4 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.2.1.post2+g0d0506f
+                0.2.1.post3+g3e77ed4
               </div>
             
           
@@ -155,16 +155,39 @@
 <span class="kn">from</span> <span class="nn">numpy.fft</span> <span class="k">import</span> <span class="n">fftn</span><span class="p">,</span> <span class="n">ifftn</span><span class="p">,</span> <span class="n">fftshift</span><span class="p">,</span> <span class="n">ifftshift</span>
 
 
+<span class="k">def</span> <span class="nf">_get_dim</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data dimensionality with error checking</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ndim</span>
+
+
 <span class="k">def</span> <span class="nf">_pad</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Pad for gaussian convolutions in the fourier domain&quot;&quot;&quot;</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">scale</span>
+    <span class="sd">&quot;&quot;&quot;Pad for gaussian convolutions in the fourier domain</span>
+
+<span class="sd">    Only need to pad by a quarter width on either side which</span>
+<span class="sd">    gives 1/2 a kernel width when wrapped.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">scale</span>
     <span class="n">pd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pd</span>
 
 
 <span class="k">def</span> <span class="nf">_crop</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Inverse of pad&quot;&quot;&quot;</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">scale</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">scale</span>
     <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -256,18 +279,13 @@
     <span class="k">return</span> <span class="n">output_filter</span>
 
 
-<span class="k">def</span> <span class="nf">_pinv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_pinv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pseudoinverse with regularization</span>
 
-<span class="sd">    Use the lowest p percent of the signal as an estimate of the noise floor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="c1"># find the lowest p% of the non-zero signal</span>
-    <span class="c1"># to use for regularization</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">d</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">p</span><span class="p">])</span>
-    <span class="n">ix</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">d</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">s</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ix</span>
+    <span class="n">xinv</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">xinv</span>
 
 
 <div class="viewcode-block" id="gaussian"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gaussian">[docs]</a><span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -319,7 +337,7 @@
     <span class="k">return</span> <span class="n">im_filter</span></div>
 
 
-<div class="viewcode-block" id="high_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass">[docs]</a><span class="k">def</span> <span class="nf">high_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+<div class="viewcode-block" id="high_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass">[docs]</a><span class="k">def</span> <span class="nf">high_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    High pass filter</span>
 <span class="sd">    data - G(data,s)</span>
@@ -329,7 +347,7 @@
     <span class="k">return</span> <span class="n">hp</span></div>
 
 
-<div class="viewcode-block" id="high_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">high_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+<div class="viewcode-block" id="high_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">high_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    High pass filter kernel in the image domain</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -344,7 +362,7 @@
     <span class="k">return</span> <span class="n">hp</span></div>
 
 
-<div class="viewcode-block" id="low_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.low_pass">[docs]</a><span class="k">def</span> <span class="nf">low_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+<div class="viewcode-block" id="low_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.low_pass">[docs]</a><span class="k">def</span> <span class="nf">low_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Low pass filter</span>
 <span class="sd">    G(data,s)</span>
@@ -354,7 +372,7 @@
     <span class="k">return</span> <span class="n">lp</span></div>
 
 
-<div class="viewcode-block" id="low_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.low_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">low_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+<div class="viewcode-block" id="low_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.low_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">low_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Low pass filter kernel in the image domain</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -364,27 +382,27 @@
     <span class="k">return</span> <span class="n">lp</span></div>
 
 
-<div class="viewcode-block" id="band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass">[docs]</a><span class="k">def</span> <span class="nf">band_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">):</span>
+<div class="viewcode-block" id="band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass">[docs]</a><span class="k">def</span> <span class="nf">band_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Band pass filter</span>
 <span class="sd">    Difference of two gaussians</span>
-<span class="sd">    G(data, s1) - G(data, s2)</span>
+<span class="sd">    G(data, s) - G(data, s+1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">d1</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">)</span>
-    <span class="n">d2</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">)</span>
+    <span class="n">d1</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">bp</span> <span class="o">=</span> <span class="n">d1</span> <span class="o">-</span> <span class="n">d2</span>
     <span class="k">return</span> <span class="n">bp</span></div>
 
 
-<div class="viewcode-block" id="band_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">band_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">):</span>
+<div class="viewcode-block" id="band_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">band_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Band pass filter kernel in the image domain</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">r_1</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_one</span><span class="p">)</span>
-    <span class="n">r_2</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">)</span>
+    <span class="n">r_1</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">r_2</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r_1</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r_2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">bp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">g</span><span class="p">))))</span>
-    <span class="n">bp</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">bp</span><span class="p">,</span> <span class="n">scale_two</span><span class="p">)</span>
+    <span class="n">bp</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">bp</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">bp</span></div>
 
 
@@ -808,15 +826,24 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="hessian_power"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian_power">[docs]</a><span class="k">def</span> <span class="nf">hessian_power</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+<div class="viewcode-block" id="gradient_amplitude"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gradient_amplitude">[docs]</a><span class="k">def</span> <span class="nf">gradient_amplitude</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Power in the hessian filter band</span>
-<span class="sd">    Frobenius norm squared</span>
+<span class="sd">    Amplitude in the gradient filter band</span>
+<span class="sd">    2/Frobenius norm</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">amp</span></div>
+
+
+<div class="viewcode-block" id="hessian_amplitude"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian_amplitude">[docs]</a><span class="k">def</span> <span class="nf">hessian_amplitude</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Amplitude in the hessian filter band</span>
+<span class="sd">    Frobenius norm</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
             <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
             <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
@@ -826,25 +853,7 @@
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)))</span>
-    <span class="k">return</span> <span class="n">p</span></div>
-
-
-<div class="viewcode-block" id="gradient_rot"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gradient_rot">[docs]</a><span class="k">def</span> <span class="nf">gradient_rot</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Rotational invariant of the gradient</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="c1"># [dx, dy]</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-
-    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="c1"># [dx, dy, dz]</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)))</span>
-
-    <span class="k">return</span> <span class="n">g</span></div>
+    <span class="k">return</span> <span class="n">a</span></div>
 
 
 <div class="viewcode-block" id="hessian_rot"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian_rot">[docs]</a><span class="k">def</span> <span class="nf">hessian_rot</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
@@ -864,7 +873,7 @@
             <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">frobenius</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trace</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">frobenius</span>
 
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
         <span class="c1"># [dxx, dxy, dxz, dyy, dyz, dzz]</span>
@@ -899,7 +908,7 @@
             <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="p">)</span>
 
-        <span class="k">return</span> <span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">frobenius</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">frobenius</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)))</span></div>
@@ -993,6 +1002,78 @@
     <span class="n">dzzp</span> <span class="o">=</span> <span class="n">Hp</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dzz</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dxxp</span><span class="p">,</span> <span class="n">dxyp</span><span class="p">,</span> <span class="n">dxzp</span><span class="p">,</span> <span class="n">dyyp</span><span class="p">,</span> <span class="n">dyzp</span><span class="p">,</span> <span class="n">dzzp</span></div>
+
+
+<div class="viewcode-block" id="weighted_low_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_low_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted low pass filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="weighted_high_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_high_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted high pass filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="weighted_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_band_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted band pass filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">band_pass</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="weighted_gradient"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_gradient">[docs]</a><span class="k">def</span> <span class="nf">weighted_gradient</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted gradient filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">gradient</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="weighted_gradient_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_gradient_band_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted band pass gradient filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="weighted_hessian"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_hessian">[docs]</a><span class="k">def</span> <span class="nf">weighted_hessian</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted hessian filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">hessian</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="weighted_hessian_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_hessian_band_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Weighted band pass hessian filter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">a</span></div>
 </pre></div>
 
            </div>

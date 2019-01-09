@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.features &mdash; JEM 0.2.1.post2+g0d0506f documentation</title>
+  <title>jem.features &mdash; JEM 0.2.1.post3+g3e77ed4 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.2.1.post2+g0d0506f
+                0.2.1.post3+g3e77ed4
               </div>
             
           
@@ -150,9 +150,24 @@
             
   <h1>Source code for jem.features</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">high_pass</span><span class="p">,</span> <span class="n">low_pass</span>
-<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">band_pass</span><span class="p">,</span> <span class="n">gradient_band_pass</span><span class="p">,</span> <span class="n">hessian_band_pass</span>
-<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">gradient_rot</span><span class="p">,</span> <span class="n">hessian_rot</span>
+
+<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">_pinv</span><span class="p">,</span>
+    <span class="n">high_pass</span><span class="p">,</span>
+    <span class="n">low_pass</span><span class="p">,</span>
+    <span class="n">band_pass</span><span class="p">,</span>
+    <span class="n">gradient_band_pass</span><span class="p">,</span>
+    <span class="n">gradient_amplitude</span><span class="p">,</span>
+    <span class="n">hessian_band_pass</span><span class="p">,</span>
+    <span class="n">hessian_amplitude</span><span class="p">,</span>
+    <span class="n">hessian_rot</span><span class="p">,</span>
+    <span class="n">weighted_high_pass</span><span class="p">,</span>
+    <span class="n">weighted_low_pass</span><span class="p">,</span>
+    <span class="n">weighted_band_pass</span><span class="p">,</span>
+    <span class="n">weighted_gradient_band_pass</span><span class="p">,</span>
+    <span class="n">weighted_hessian_band_pass</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.signal_stats</span> <span class="k">import</span> <span class="n">global_scale</span>
 
 
 <span class="c1"># Number of spatial scales</span>
@@ -162,23 +177,21 @@
 <span class="n">NORMALIZATION_SCALE</span> <span class="o">=</span> <span class="mi">5</span>
 
 
-<span class="k">def</span> <span class="nf">_get_dim</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Data dimensionality with error checking</span>
+<span class="k">def</span> <span class="nf">_normalize_bpd_filters</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;In place weighted local normalization of a set of band pass derivative filters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+        <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">gain</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]]</span>
 
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">ndim</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">ndim</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="n">gradient_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">])</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+        <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">gain</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]]</span>
 
-    <span class="k">return</span> <span class="n">ndim</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="n">hessian_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">])</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+        <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">gain</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]]</span>
 
 
 <div class="viewcode-block" id="rectify"><a class="viewcode-back" href="../../api/features.html#jem.features.rectify">[docs]</a><span class="k">def</span> <span class="nf">rectify</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -193,148 +206,136 @@
     <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="input_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.input_normalization">[docs]</a><span class="k">def</span> <span class="nf">input_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="local_gain_field"><a class="viewcode-back" href="../../api/features.html#jem.features.local_gain_field">[docs]</a><span class="k">def</span> <span class="nf">local_gain_field</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Normalize in a manner similar to the retina</span>
+<span class="sd">    Local gain field</span>
+<span class="sd">    Inverse of the local gain, i.e. multiply by this for local divisive normalization</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">z</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">+</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">data</span> <span class="o">/</span> <span class="n">f</span>
+    <span class="n">gain</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">y</span></div>
+    <span class="k">return</span> <span class="n">gain</span></div>
 
 
-<div class="viewcode-block" id="front_end_features"><a class="viewcode-back" href="../../api/features.html#jem.features.front_end_features">[docs]</a><span class="k">def</span> <span class="nf">front_end_features</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nscales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="local_power_law_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_power_law_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_power_law_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute multi-scale image features from the zeroth, first, and</span>
-<span class="sd">    second order gaussian derivatives with divisive normalization</span>
+<span class="sd">    Local normalization assuming power law, &lt;d&gt; = &lt;d**2&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">data</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
 
-<span class="sd">    :param data:  2D or 3D numpy array</span>
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="local_contrast_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_contrast_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_contrast_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Local contrast normalization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lc</span></div>
+
+
+<div class="viewcode-block" id="band_pass_derivative_filters"><a class="viewcode-back" href="../../api/features.html#jem.features.band_pass_derivative_filters">[docs]</a><span class="k">def</span> <span class="nf">band_pass_derivative_filters</span><span class="p">(</span>
+    <span class="n">d</span><span class="p">,</span>
+    <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+    <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span>
+    <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multi-scale image filters from the zeroth, first, and</span>
+<span class="sd">    second order gaussian derivatives with signal likelihood weighting</span>
+
+<span class="sd">    :param d: contrast_normalized 2D or 3D numpy array</span>
+<span class="sd">    :param w: signal likelihood</span>
+<span class="sd">    :param sigma: noise level</span>
 <span class="sd">    :param nscales: int number of scales</span>
-<span class="sd">    :normalization_scale: int scale for stage 1 input normalization</span>
-<span class="sd">    :return: list of 2D or 3D numpy arrays and list of names</span>
+<span class="sd">    :return: list, one dictionary per level</span>
+
+<span class="sd">    The multi scale bandpass derivatives are organized by scale,</span>
+<span class="sd">    zero (band pass), first (gradient), second (hessian)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">normalization_scale</span> <span class="o">=</span> <span class="n">NORMALIZATION_SCALE</span>
-    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="o">&lt;</span> <span class="n">nscales</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Normalization scale cannot be less than the number of Scales.&quot;</span>
-        <span class="p">)</span>
+    <span class="c1"># Initialize the features list</span>
+    <span class="n">bpdf</span> <span class="o">=</span> <span class="p">[{}</span> <span class="k">for</span> <span class="n">_scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">)]</span>
 
-    <span class="c1"># Initialize the features list and the names list</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="c1"># Stage 1: High pass filter and local normalization</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">input_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">)</span>
-
-    <span class="c1"># Stage 2: Feature generation</span>
-    <span class="c1"># The features are organized by level</span>
-    <span class="c1"># At each level:</span>
-    <span class="c1">#    bandpass</span>
-    <span class="c1">#    gradient</span>
-    <span class="c1">#    hessian</span>
-
-    <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nscales</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
         <span class="c1"># Bandpass: zeroth order gaussian derivative</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale_one</span><span class="o">=</span><span class="n">lev</span><span class="p">,</span> <span class="n">scale_two</span><span class="o">=</span><span class="n">lev</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
-        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Band Pass L</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">weighted_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)]</span>
 
         <span class="c1"># Gradient: first order gaussian derivates</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feat</span><span class="p">)):</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gradient L</span><span class="si">{lev}</span><span class="s2">M</span><span class="si">{n}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weighted_gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
         <span class="c1"># Hessian: second order gaussian derivatives</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feat</span><span class="p">)):</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian L</span><span class="si">{lev}</span><span class="s2">M</span><span class="si">{n}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weighted_hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">names</span></div>
+    <span class="c1"># Local gain control</span>
+    <span class="n">_normalize_bpd_filters</span><span class="p">(</span><span class="n">bpdf</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bpdf</span></div>
 
 
-<div class="viewcode-block" id="riff"><a class="viewcode-back" href="../../api/features.html#jem.features.riff">[docs]</a><span class="k">def</span> <span class="nf">riff</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">nscales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute multi-scale rotationally invariant image features</span>
-<span class="sd">    from the zeroth, first, and second order gaussian derivatives</span>
-<span class="sd">    with divisive normalization</span>
+<div class="viewcode-block" id="rotational_invariants"><a class="viewcode-back" href="../../api/features.html#jem.features.rotational_invariants">[docs]</a><span class="k">def</span> <span class="nf">rotational_invariants</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute rotational invariants of a set of band pass derivative filters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># At each level</span>
+    <span class="c1">#    bandpass:</span>
+    <span class="c1">#       2 rotational invariant: bp, |bp|</span>
+    <span class="c1">#    gradient:</span>
+    <span class="c1">#       1 rotational invariant: |g|</span>
+    <span class="c1">#    hessian:</span>
+    <span class="c1">#       in 2D, 3 rotational invariants: Tr(H), Det(H), |H|</span>
+    <span class="c1">#       in 3D, 4 rotational invariants: Tr(H), Det(H), Sec, |H|</span>
 
-<span class="sd">    :param data:  2D or 3D numpy array</span>
-<span class="sd">    :param nscales: int number of scales</span>
-<span class="sd">    :normalization_scale: int scale for stage 1 input normalization</span>
-<span class="sd">    :return: list of 3*nscales+1 2D or 3D numpy arrays and list of names</span>
+    <span class="c1"># Initialize the features list</span>
+    <span class="n">num_scales</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="p">[{}</span> <span class="k">for</span> <span class="n">_scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
+        <span class="c1"># G0</span>
+        <span class="n">rot</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">]</span>
+        <span class="c1"># G1</span>
+        <span class="n">rot</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">gradient_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">])]</span>
+        <span class="c1"># G2</span>
+        <span class="n">rot</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hessian_rot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">rot</span></div>
+
+
+<div class="viewcode-block" id="riff"><a class="viewcode-back" href="../../api/features.html#jem.features.riff">[docs]</a><span class="k">def</span> <span class="nf">riff</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rotational invariant front end features</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">normalization_scale</span> <span class="o">=</span> <span class="n">NORMALIZATION_SCALE</span>
-    <span class="k">if</span> <span class="n">normalization_scale</span> <span class="o">&lt;</span> <span class="n">nscales</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Normalization scale cannot be less than the number of Scales.&quot;</span>
-        <span class="p">)</span>
+    <span class="c1"># Global scaling, signal likelihood, noise level</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">global_scale</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="c1"># Initialize the textures list and the names list</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Local contrast normalization</span>
+    <span class="n">f_c</span> <span class="o">=</span> <span class="n">local_contrast_normalization</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
 
-    <span class="c1"># Stage 1: High pass filter and local normalization</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">input_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">)</span>
+    <span class="c1"># Multi-scale band pass derivative filters</span>
+    <span class="n">bpdf</span> <span class="o">=</span> <span class="n">band_pass_derivative_filters</span><span class="p">(</span><span class="n">f_c</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">num_scales</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
 
-    <span class="c1"># Stage 2: Feature generation</span>
-    <span class="c1"># The features are organized by level</span>
-    <span class="c1"># At each level:</span>
-    <span class="c1">#    bandpass (2 rotational invariant: bp, |bp|)</span>
-    <span class="c1">#    gradient (1 rotational invariant: |g|)</span>
-    <span class="c1">#    hessian (4 rotational invariants: Tr(H), Det(H), Sec, |H|)</span>
-    <span class="c1">#  Keep a running total of the total power from each feature</span>
-    <span class="n">total_power</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="c1"># Rotational invariants</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="n">rotational_invariants</span><span class="p">(</span><span class="n">bpdf</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nscales</span><span class="p">):</span>
-        <span class="c1"># Bandpass (difference of adjacent gaussians)</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale_one</span><span class="o">=</span><span class="n">lev</span><span class="p">,</span> <span class="n">scale_two</span><span class="o">=</span><span class="n">lev</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
-        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Band Pass S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">feat</span><span class="p">))</span>
-        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Band Pass Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">total_power</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-
-        <span class="c1"># Gradient</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">gradient_rot</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
-        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gradient Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="c1"># The power is the square of the gradient amplitude</span>
-        <span class="n">total_power</span> <span class="o">+=</span> <span class="n">feat</span> <span class="o">**</span> <span class="mi">2</span>
-
-        <span class="c1"># The next set of features are the rotational invariants of the</span>
-        <span class="c1"># second order gaussian derivatives</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lev</span><span class="p">)</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">hessian_rot</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Laplacian S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Det S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="c1"># The power is the the square of the Frobenius norm</span>
-            <span class="n">total_power</span> <span class="o">+=</span> <span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian R2 S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Det S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Hessian Magnitude S</span><span class="si">{lev}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="c1"># The power is the the square of the Frobenius norm</span>
-            <span class="n">total_power</span> <span class="o">+=</span> <span class="n">feat</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
-
-    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">names</span></div>
+    <span class="k">return</span> <span class="n">rot</span></div>
 </pre></div>
 
            </div>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Features (jem.features) &mdash; JEM 0.2.1.post2+g0d0506f documentation</title>
+  <title>Features (jem.features) &mdash; JEM 0.2.1.post3+g3e77ed4 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.2.1.post2+g0d0506f
+                0.2.1.post3+g3e77ed4
               </div>
             
           
@@ -161,35 +161,48 @@
   <div class="section" id="module-jem.features">
 <span id="features-jem-features"></span><span id="jem-features"></span><h1>Features (<code class="docutils literal notranslate"><span class="pre">jem.features</span></code>)<a class="headerlink" href="#module-jem.features" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="jem.features.front_end_features">
-<code class="descclassname">jem.features.</code><code class="descname">front_end_features</code><span class="sig-paren">(</span><em>data</em>, <em>nscales=3</em>, <em>normalization_scale=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#front_end_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.front_end_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute multi-scale image features from the zeroth, first, and
-second order gaussian derivatives with divisive normalization</p>
+<dt id="jem.features.band_pass_derivative_filters">
+<code class="descclassname">jem.features.</code><code class="descname">band_pass_derivative_filters</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=3</em>, <em>normalization_scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#band_pass_derivative_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.band_pass_derivative_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-scale image filters from the zeroth, first, and
+second order gaussian derivatives with signal likelihood weighting</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> – 2D or 3D numpy array</li>
+<li><strong>d</strong> – contrast_normalized 2D or 3D numpy array</li>
+<li><strong>w</strong> – signal likelihood</li>
+<li><strong>sigma</strong> – noise level</li>
 <li><strong>nscales</strong> – int number of scales</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Normalization_scale:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">int scale for stage 1 input normalization</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of 2D or 3D numpy arrays and list of names</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list, one dictionary per level</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p>The multi scale bandpass derivatives are organized by scale,
+zero (band pass), first (gradient), second (hessian)</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="jem.features.input_normalization">
-<code class="descclassname">jem.features.</code><code class="descname">input_normalization</code><span class="sig-paren">(</span><em>data</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#input_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.input_normalization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normalize in a manner similar to the retina</p>
+<dt id="jem.features.local_contrast_normalization">
+<code class="descclassname">jem.features.</code><code class="descname">local_contrast_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_contrast_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_contrast_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local contrast normalization</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.features.local_gain_field">
+<code class="descclassname">jem.features.</code><code class="descname">local_gain_field</code><span class="sig-paren">(</span><em>f</em>, <em>w</em>, <em>sigma</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_gain_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_gain_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local gain field
+Inverse of the local gain, i.e. multiply by this for local divisive normalization</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.features.local_power_law_normalization">
+<code class="descclassname">jem.features.</code><code class="descname">local_power_law_normalization</code><span class="sig-paren">(</span><em>data</em>, <em>w</em>, <em>sigma</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_power_law_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_power_law_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local normalization assuming power law, &lt;d&gt; = &lt;d**2&gt;</p>
 </dd></dl>
 
 <dl class="function">
@@ -200,29 +213,14 @@ second order gaussian derivatives with divisive normalization</p>
 
 <dl class="function">
 <dt id="jem.features.riff">
-<code class="descclassname">jem.features.</code><code class="descname">riff</code><span class="sig-paren">(</span><em>data</em>, <em>nscales=3</em>, <em>normalization_scale=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#riff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.riff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute multi-scale rotationally invariant image features
-from the zeroth, first, and second order gaussian derivatives
-with divisive normalization</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> – 2D or 3D numpy array</li>
-<li><strong>nscales</strong> – int number of scales</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Normalization_scale:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">int scale for stage 1 input normalization</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of 3*nscales+1 2D or 3D numpy arrays and list of names</p>
-</td>
-</tr>
-</tbody>
-</table>
+<code class="descclassname">jem.features.</code><code class="descname">riff</code><span class="sig-paren">(</span><em>data</em>, <em>num_scales=3</em>, <em>normalization_scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#riff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.riff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotational invariant front end features</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.features.rotational_invariants">
+<code class="descclassname">jem.features.</code><code class="descname">rotational_invariants</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#rotational_invariants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.rotational_invariants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute rotational invariants of a set of band pass derivative filters</p>
 </dd></dl>
 
 </div>
