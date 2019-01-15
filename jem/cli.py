@@ -5,7 +5,7 @@ import nibabel
 import numpy as np
 from .signal_stats import global_scale
 from .features import (
-    local_power_law_normalization,
+    local_scale_normalization,
     local_contrast_normalization,
     riff,
     NUM_SCALES,
@@ -78,7 +78,7 @@ def coil_correction(input_image, scale, output):
     # load the image data and the coil correction data and apply
     data = im.get_data().astype(np.float32)
     f, w, sigma = global_scale(data)
-    data_corr = local_power_law_normalization(data, w, sigma, scale=scale)
+    data_corr = local_scale_normalization(data, w, sigma, scale=scale)
 
     # write out the result as floating point and preserve the header
     out_im = type(im)(data_corr.astype(np.float32), affine=None, header=im.header)
