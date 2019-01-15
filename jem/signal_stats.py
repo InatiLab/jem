@@ -121,10 +121,13 @@ def global_scale(data, niter=NOISE_MAX_ITER, tol=NOISE_TOL):
     """
 
     # Estimate the signal properties
-    sigma_n, mu_s, sigma_s, w_s = signal_stats(data, niter, tol)
+    uf, mu_s, sigma_s, w_s = signal_stats(data, niter, tol)
 
     # Scale the signal by the dispersion
     # signal dispersion of f is 1.0
     f = data / sigma_s
+
+    # Scale the noise leval
+    sigma_n = uf / sigma_s
 
     return f, w_s, sigma_n
