@@ -65,13 +65,20 @@ def local_gain_field(f, w, sigma, scale=NORMALIZATION_SCALE):
     return gain
 
 
-def local_power_law_normalization(data, w, sigma, scale=NORMALIZATION_SCALE):
+def local_scale_normalization(d, w, sigma, scale=NORMALIZATION_SCALE):
     """
-    Local normalization assuming power law, <d> = <d**2>
+    Local normalization by the signal scale.
+    Signal scale is estimated as the mean absolute deviation
     """
-    a = weighted_low_pass(np.abs(data), w, sigma, scale)
-    b = weighted_low_pass(np.abs(data) ** 2, w, sigma, scale)
-    f = data * a * _pinv(b, sigma)
+    """
+    Local contrast normalization
+    """
+    if w is not None:
+        dev = weighted_high_pass(d, w, sigma, scale)
+        f = d * local_gain_field(np.abs(dev), w, sigma, scale)
+    else:
+        dev = high_pass(d, scale)
+        f = d * _pinv(low_pass(np.abs(dev), scale), sigma)
 
     return f
 
@@ -79,6 +86,7 @@ def local_power_law_normalization(data, w, sigma, scale=NORMALIZATION_SCALE):
 def local_contrast_normalization(d, w=None, sigma=0.001, scale=NORMALIZATION_SCALE):
     """
     Local contrast normalization
+    Subtract the local mean and scale by the local mean absolute deviation
     """
     if w is not None:
         dev = weighted_high_pass(d, w, sigma, scale)
@@ -100,7 +108,7 @@ def band_pass_derivative_filters(
     """Multi-scale image filters from the zeroth, first, and
     second order gaussian derivatives with signal likelihood weighting
 
-    :param d: contrast_normalized 2D or 3D numpy array
+    :param d: 2D or 3D numpy array
     :param w: signal likelihood
     :param sigma: noise level
     :param nscales: int number of scales
@@ -131,9 +139,6 @@ def band_pass_derivative_filters(
             bpdf[scale]["hessian"] = weighted_hessian_band_pass(d, w, sigma, scale)
         else:
             bpdf[scale]["hessian"] = hessian_band_pass(d, scale)
-
-    # Local gain control
-    _normalize_bpd_filters(bpdf, w, sigma, normalization_scale)
 
     return bpdf
 
@@ -168,7 +173,12 @@ def rotational_invariants(f):
     return rot
 
 
-def riff(data, num_scales=NUM_SCALES, normalization_scale=NORMALIZATION_SCALE):
+def riff(
+    data,
+    num_scales=NUM_SCALES,
+    normalization_scale=NORMALIZATION_SCALE,
+    local_normalization=False,
+):
     """Rotational invariant front end features
     """
 
@@ -180,6 +190,10 @@ def riff(data, num_scales=NUM_SCALES, normalization_scale=NORMALIZATION_SCALE):
 
     # Multi-scale band pass derivative filters
     bpdf = band_pass_derivative_filters(f_c, w, sigma, num_scales, normalization_scale)
+
+    # Local gain control
+    if local_normalization:
+        _normalize_bpd_filters(bpdf, w, sigma, normalization_scale)
 
     # Rotational invariants
     rot = rotational_invariants(bpdf)
