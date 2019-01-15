@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.features &mdash; JEM 0.3.1 documentation</title>
+  <title>jem.features &mdash; JEM 0.3.1.post1+ge09a063 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.3.1
+                0.3.1.post1+ge09a063
               </div>
             
           
@@ -336,8 +336,8 @@
     <span class="c1"># Global scaling, signal likelihood, noise level</span>
     <span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">global_scale</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="c1"># Local contrast normalization</span>
-    <span class="n">f_c</span> <span class="o">=</span> <span class="n">local_contrast_normalization</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+    <span class="c1"># Local scale normalization</span>
+    <span class="n">f_c</span> <span class="o">=</span> <span class="n">local_scale_normalization</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
 
     <span class="c1"># Multi-scale band pass derivative filters</span>
     <span class="n">bpdf</span> <span class="o">=</span> <span class="n">band_pass_derivative_filters</span><span class="p">(</span><span class="n">f_c</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">num_scales</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
