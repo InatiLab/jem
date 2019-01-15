@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.features &mdash; JEM 0.3.0 documentation</title>
+  <title>jem.features &mdash; JEM 0.3.0.post1+g21dd105 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.3.0
+                0.3.0.post1+g21dd105
               </div>
             
           
@@ -216,13 +216,20 @@
     <span class="k">return</span> <span class="n">gain</span></div>
 
 
-<div class="viewcode-block" id="local_power_law_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_power_law_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_power_law_normalization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="local_scale_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_scale_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_scale_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Local normalization assuming power law, &lt;d&gt; = &lt;d**2&gt;</span>
+<span class="sd">    Local normalization by the signal scale.</span>
+<span class="sd">    Signal scale is estimated as the mean absolute deviation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">data</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Local contrast normalization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">f</span></div>
 
@@ -230,6 +237,7 @@
 <div class="viewcode-block" id="local_contrast_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_contrast_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_contrast_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Local contrast normalization</span>
+<span class="sd">    Subtract the local mean and scale by the local mean absolute deviation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
@@ -251,7 +259,7 @@
     <span class="sd">&quot;&quot;&quot;Multi-scale image filters from the zeroth, first, and</span>
 <span class="sd">    second order gaussian derivatives with signal likelihood weighting</span>
 
-<span class="sd">    :param d: contrast_normalized 2D or 3D numpy array</span>
+<span class="sd">    :param d: 2D or 3D numpy array</span>
 <span class="sd">    :param w: signal likelihood</span>
 <span class="sd">    :param sigma: noise level</span>
 <span class="sd">    :param nscales: int number of scales</span>
@@ -282,9 +290,6 @@
             <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weighted_hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-
-    <span class="c1"># Local gain control</span>
-    <span class="n">_normalize_bpd_filters</span><span class="p">(</span><span class="n">bpdf</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">bpdf</span></div>
 
@@ -319,7 +324,12 @@
     <span class="k">return</span> <span class="n">rot</span></div>
 
 
-<div class="viewcode-block" id="riff"><a class="viewcode-back" href="../../api/features.html#jem.features.riff">[docs]</a><span class="k">def</span> <span class="nf">riff</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="riff"><a class="viewcode-back" href="../../api/features.html#jem.features.riff">[docs]</a><span class="k">def</span> <span class="nf">riff</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span>
+    <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">,</span>
+    <span class="n">local_normalization</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Rotational invariant front end features</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -331,6 +341,10 @@
 
     <span class="c1"># Multi-scale band pass derivative filters</span>
     <span class="n">bpdf</span> <span class="o">=</span> <span class="n">band_pass_derivative_filters</span><span class="p">(</span><span class="n">f_c</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">num_scales</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+
+    <span class="c1"># Local gain control</span>
+    <span class="k">if</span> <span class="n">local_normalization</span><span class="p">:</span>
+        <span class="n">_normalize_bpd_filters</span><span class="p">(</span><span class="n">bpdf</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
 
     <span class="c1"># Rotational invariants</span>
     <span class="n">rot</span> <span class="o">=</span> <span class="n">rotational_invariants</span><span class="p">(</span><span class="n">bpdf</span><span class="p">)</span>
