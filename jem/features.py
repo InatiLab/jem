@@ -185,8 +185,8 @@ def riff(
     # Global scaling, signal likelihood, noise level
     f, w, sigma = global_scale(data)
 
-    # Local contrast normalization
-    f_c = local_contrast_normalization(f, w, sigma, normalization_scale)
+    # Local scale normalization
+    f_c = local_scale_normalization(f, w, sigma, normalization_scale)
 
     # Multi-scale band pass derivative filters
     bpdf = band_pass_derivative_filters(f_c, w, sigma, num_scales, normalization_scale)
