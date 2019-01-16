@@ -48,7 +48,7 @@ def contrast_normalization(input_image, scale, output):
     # load the image data and the coil correction data and apply
     data = im.get_data().astype(np.float32)
     f, w, sigma = global_scale(data)
-    lc = local_contrast_normalization(data, w, sigma, scale=scale)
+    lc = local_contrast_normalization(f, w, sigma, scale=scale)
 
     # write out the result as floating point and preserve the header
     out_im = type(im)(lc.astype(np.float32), affine=None, header=im.header)
@@ -78,7 +78,7 @@ def coil_correction(input_image, scale, output):
     # load the image data and the coil correction data and apply
     data = im.get_data().astype(np.float32)
     f, w, sigma = global_scale(data)
-    data_corr = local_scale_normalization(data, w, sigma, scale=scale)
+    data_corr = local_scale_normalization(f, w, sigma, scale=scale)
 
     # write out the result as floating point and preserve the header
     out_im = type(im)(data_corr.astype(np.float32), affine=None, header=im.header)
