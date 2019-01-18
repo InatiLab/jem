@@ -18,7 +18,6 @@ from .filters import (
 )
 from .signal_stats import global_scale
 
-
 # Number of spatial scales
 NUM_SCALES = 3
 
@@ -98,20 +97,59 @@ def local_contrast_normalization(d, w=None, sigma=0.001, scale=NORMALIZATION_SCA
     return lc
 
 
-def band_pass_derivative_filters(
-    d,
-    w=None,
-    sigma=0.001,
-    num_scales=NUM_SCALES,
-    normalization_scale=NORMALIZATION_SCALE,
-):
+def laplacian_pyramid(d, w=None, sigma=0.001, num_scales=NUM_SCALES):
+    """Laplacian pyramid from gaussian filters with signal likelihood weighting
+
+    :param d: 2D or 3D numpy array
+    :param w: signal likelihood
+    :param sigma: noise level
+    :param nscales: int number of scales
+    :return: list, one dictionary per level
+
+    The pyramid is organized by scale,
+    high pass, level 0, level 1, .., Level num_scales-1, low pass
+    Adding the output back together produces the original input data
+    """
+
+    # Initialize the pyramid
+    lpyr = []
+
+    # High pass
+    if w is not None:
+        lp = weighted_low_pass(d, w, sigma, scale=0)
+    else:
+        lp = low_pass(d, scale=0)
+
+    # Compute the high pass and append
+    lpyr.append(d - lp)
+
+    # Recursive filtering with gaussian of scale=1
+    # halves the resolution every time
+    for _scale in range(num_scales):
+        # Replace the data with the low pass from the previous scale
+        d = lp.copy()
+        if w is not None:
+            lp = weighted_low_pass(d, w, sigma, scale=1)
+        else:
+            lp = low_pass(d, scale=1)
+
+        # Compute this level of the pyramid
+        lpyr.append(d - lp)
+
+    # The low pass is left
+    lpyr.append(lp)
+
+    return lpyr
+
+
+def band_pass_derivative_filters(d, w=None, sigma=0.001, num_scales=NUM_SCALES):
     """Multi-scale image filters from the zeroth, first, and
     second order gaussian derivatives with signal likelihood weighting
 
     :param d: 2D or 3D numpy array
     :param w: signal likelihood
     :param sigma: noise level
-    :param nscales: int number of scales
+    :param num_scales: int number of scales
     :return: list, one dictionary per level
 
     The multi scale bandpass derivatives are organized by scale,

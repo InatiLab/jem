@@ -5,6 +5,7 @@ import nibabel
 import numpy as np
 from .signal_stats import global_scale
 from .features import (
+    laplacian_pyramid,
     local_scale_normalization,
     local_contrast_normalization,
     riff,
@@ -86,6 +87,53 @@ def coil_correction(input_image, scale, output):
     out_im.to_filename(output)
 
     click.echo("Wrote coil intensity corrected image to {}.".format(output))
+
+
+@click.command(name=laplacian_pyramid)
+@click.option(
+    "--output",
+    type=click.STRING,
+    default="out.nii",
+    help="Output filename for the laplacian pyramid image.",
+)
+@click.argument("input_image", type=click.STRING)
+@click.option(
+    "--nscales", type=click.INT, default=NUM_SCALES, help="number of spatial scales"
+)
+@click.option(
+    "--normalization_scale",
+    type=click.INT,
+    default=NORMALIZATION_SCALE,
+    help="scale for input gain control",
+)
+def compute_laplacian_pyramid(input_image, nscales, normalization_scale, output):
+    """Compute rotationally invariant features."""
+
+    click.echo(f"Compute rotationally invariant features for {input_image}.")
+
+    # open the images
+    im = nibabel.load(input_image)
+    data = im.get_data().astype(np.float32)
+
+    # Global scaling, signal likelihood, noise level
+    f, w, sigma = global_scale(data)
+
+    # Local scale normalization
+    f_c = local_scale_normalization(f, w, sigma, normalization_scale)
+
+    # compute the laplacian pyramid
+    lpyr = laplacian_pyramid(f_c, w, sigma, nscales)
+
+    # Smush into a single array and convert to single precision
+    # with pyramed level as the fourth dimension
+    lpyr = np.stack(lpyr, axis=-1).astype(np.float32)
+
+    # write out the result in the same format and preserve the header
+    out_im = type(im)(lpyr, affine=None, header=im.header)
+    out_im.set_data_dtype(np.float32)
+    out_im.to_filename(output)
+
+    click.echo(f"Wrote Laplacian Pyramid to {output}.")
 
 
 @click.command(name=riff)
