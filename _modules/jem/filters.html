@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.filters &mdash; JEM 0.3.2.post3+g7065bb9 documentation</title>
+  <title>jem.filters &mdash; JEM 0.3.2.post4+gf898e3e documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.3.2.post3+g7065bb9
+                0.3.2.post4+gf898e3e
               </div>
             
           
@@ -153,6 +153,11 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">nibabel.eulerangles</span> <span class="k">import</span> <span class="n">euler2mat</span>
 <span class="kn">from</span> <span class="nn">numpy.fft</span> <span class="k">import</span> <span class="n">fftn</span><span class="p">,</span> <span class="n">ifftn</span><span class="p">,</span> <span class="n">fftshift</span><span class="p">,</span> <span class="n">ifftshift</span>
+
+<span class="c1"># Regularization scaling</span>
+<span class="c1"># For weighted filtering, the regularization term should be a fraction of the noise level</span>
+<span class="c1"># we use 0.01 by default</span>
+<span class="n">REG_SCALE</span> <span class="o">=</span> <span class="mf">0.01</span>
 
 
 <span class="k">def</span> <span class="nf">_get_dim</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
@@ -279,12 +284,15 @@
     <span class="k">return</span> <span class="n">output_filter</span>
 
 
-<span class="k">def</span> <span class="nf">_pinv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_pinv</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">reg_scale</span><span class="o">=</span><span class="n">REG_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pseudoinverse with regularization</span>
+<span class="sd">    sigma is the noise level</span>
+<span class="sd">    reg_scale is the scaling factor</span>
+<span class="sd">    pinv(x) = x / (x^2 + (sigma*reg_scale)**2)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">xinv</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">xinv</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">sigma</span> <span class="o">*</span> <span class="n">reg_scale</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">xinv</span>
 
 

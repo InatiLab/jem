@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Features (jem.features) &mdash; JEM 0.3.2.post3+g7065bb9 documentation</title>
+  <title>Features (jem.features) &mdash; JEM 0.3.2.post4+gf898e3e documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.3.2.post3+g7065bb9
+                0.3.2.post4+gf898e3e
               </div>
             
           
@@ -162,9 +162,34 @@
 <span id="features-jem-features"></span><span id="jem-features"></span><h1>Features (<code class="docutils literal notranslate"><span class="pre">jem.features</span></code>)<a class="headerlink" href="#module-jem.features" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="jem.features.band_pass_derivative_filters">
-<code class="descclassname">jem.features.</code><code class="descname">band_pass_derivative_filters</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=3</em>, <em>normalization_scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#band_pass_derivative_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.band_pass_derivative_filters" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.features.</code><code class="descname">band_pass_derivative_filters</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#band_pass_derivative_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.band_pass_derivative_filters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multi-scale image filters from the zeroth, first, and
 second order gaussian derivatives with signal likelihood weighting</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d</strong> – 2D or 3D numpy array</li>
+<li><strong>w</strong> – signal likelihood</li>
+<li><strong>sigma</strong> – noise level</li>
+<li><strong>num_scales</strong> – int number of scales</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list, one dictionary per level</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The multi scale bandpass derivatives are organized by scale,
+zero (band pass), first (gradient), second (hessian)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.features.laplacian_pyramid">
+<code class="descclassname">jem.features.</code><code class="descname">laplacian_pyramid</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#laplacian_pyramid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.laplacian_pyramid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Laplacian pyramid from gaussian filters with signal likelihood weighting</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -182,8 +207,9 @@ second order gaussian derivatives with signal likelihood weighting</p>
 </tr>
 </tbody>
 </table>
-<p>The multi scale bandpass derivatives are organized by scale,
-zero (band pass), first (gradient), second (hessian)</p>
+<p>The pyramid is organized by scale,
+high pass, level 0, level 1, .., Level num_scales-1, low pass
+Adding the output back together produces the original input data</p>
 </dd></dl>
 
 <dl class="function">

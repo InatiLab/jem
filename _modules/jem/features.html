@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.features &mdash; JEM 0.3.2.post3+g7065bb9 documentation</title>
+  <title>jem.features &mdash; JEM 0.3.2.post4+gf898e3e documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.3.2.post3+g7065bb9
+                0.3.2.post4+gf898e3e
               </div>
             
           
@@ -169,7 +169,6 @@
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.signal_stats</span> <span class="k">import</span> <span class="n">global_scale</span>
 
-
 <span class="c1"># Number of spatial scales</span>
 <span class="n">NUM_SCALES</span> <span class="o">=</span> <span class="mi">3</span>
 
@@ -249,20 +248,59 @@
     <span class="k">return</span> <span class="n">lc</span></div>
 
 
-<div class="viewcode-block" id="band_pass_derivative_filters"><a class="viewcode-back" href="../../api/features.html#jem.features.band_pass_derivative_filters">[docs]</a><span class="k">def</span> <span class="nf">band_pass_derivative_filters</span><span class="p">(</span>
-    <span class="n">d</span><span class="p">,</span>
-    <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-    <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span>
-    <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">,</span>
-<span class="p">):</span>
+<div class="viewcode-block" id="laplacian_pyramid"><a class="viewcode-back" href="../../api/features.html#jem.features.laplacian_pyramid">[docs]</a><span class="k">def</span> <span class="nf">laplacian_pyramid</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Laplacian pyramid from gaussian filters with signal likelihood weighting</span>
+
+<span class="sd">    :param d: 2D or 3D numpy array</span>
+<span class="sd">    :param w: signal likelihood</span>
+<span class="sd">    :param sigma: noise level</span>
+<span class="sd">    :param nscales: int number of scales</span>
+<span class="sd">    :return: list, one dictionary per level</span>
+
+<span class="sd">    The pyramid is organized by scale,</span>
+<span class="sd">    high pass, level 0, level 1, .., Level num_scales-1, low pass</span>
+<span class="sd">    Adding the output back together produces the original input data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Initialize the pyramid</span>
+    <span class="n">lpyr</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># High pass</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lp</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lp</span> <span class="o">=</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Compute the high pass and append</span>
+    <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">lp</span><span class="p">)</span>
+
+    <span class="c1"># Recursive filtering with gaussian of scale=1</span>
+    <span class="c1"># halves the resolution every time</span>
+    <span class="k">for</span> <span class="n">_scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
+        <span class="c1"># Replace the data with the low pass from the previous scale</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lp</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lp</span> <span class="o">=</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Compute this level of the pyramid</span>
+        <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">lp</span><span class="p">)</span>
+
+    <span class="c1"># The low pass is left</span>
+    <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lpyr</span></div>
+
+
+<div class="viewcode-block" id="band_pass_derivative_filters"><a class="viewcode-back" href="../../api/features.html#jem.features.band_pass_derivative_filters">[docs]</a><span class="k">def</span> <span class="nf">band_pass_derivative_filters</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Multi-scale image filters from the zeroth, first, and</span>
 <span class="sd">    second order gaussian derivatives with signal likelihood weighting</span>
 
 <span class="sd">    :param d: 2D or 3D numpy array</span>
 <span class="sd">    :param w: signal likelihood</span>
 <span class="sd">    :param sigma: noise level</span>
-<span class="sd">    :param nscales: int number of scales</span>
+<span class="sd">    :param num_scales: int number of scales</span>
 <span class="sd">    :return: list, one dictionary per level</span>
 
 <span class="sd">    The multi scale bandpass derivatives are organized by scale,</span>
