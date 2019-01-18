@@ -3,6 +3,11 @@ import numpy as np
 from nibabel.eulerangles import euler2mat
 from numpy.fft import fftn, ifftn, fftshift, ifftshift
 
+# Regularization scaling
+# For weighted filtering, the regularization term should be a fraction of the noise level
+# we use 0.01 by default
+REG_SCALE = 0.01
+
 
 def _get_dim(data):
     """
@@ -128,12 +133,15 @@ def _crop_filter(input_filter, scale, radius=None):
     return output_filter
 
 
-def _pinv(x, sigma):
+def _pinv(x, sigma, reg_scale=REG_SCALE):
     """
     Pseudoinverse with regularization
+    sigma is the noise level
+    reg_scale is the scaling factor
+    pinv(x) = x / (x^2 + (sigma*reg_scale)**2)
 
     """
-    xinv = x / (x ** 2 + sigma ** 2)
+    xinv = x / (x ** 2 + (sigma * reg_scale) ** 2)
     return xinv
 
 

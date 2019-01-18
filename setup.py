@@ -53,6 +53,7 @@ setup(
             # 'some.module:some_function',
             "contrast_normalization=jem.cli:contrast_normalization",
             "coil_correction=jem.cli:coil_correction",
+            "laplacian_pyramid=jem.cli:compute_laplacian_pyramid",
             "riff=jem.cli:compute_riff",
         ]
     },
