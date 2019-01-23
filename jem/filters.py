@@ -57,8 +57,8 @@ def _scale_coordinates(shape, scale):
     if ndim == 2:
         nx, ny = shape
         fx, fy = np.meshgrid(
-            np.linspace(-nx / 2, nx / 2, nx),
-            np.linspace(-ny / 2, ny / 2, ny),
+            np.linspace(-nx / 2, nx / 2 - 1, nx),
+            np.linspace(-ny / 2, ny / 2 - 1, ny),
             indexing="ij",
         )
         sx = nx / (2.0 * math.pi) / 2 ** scale
@@ -70,9 +70,9 @@ def _scale_coordinates(shape, scale):
     elif ndim == 3:
         nx, ny, nz = shape
         fx, fy, fz = np.meshgrid(
-            np.linspace(-nx / 2, nx / 2, nx),
-            np.linspace(-ny / 2, ny / 2, ny),
-            np.linspace(-nz / 2, nz / 2, nz),
+            np.linspace(-nx / 2, nx / 2 - 1, nx),
+            np.linspace(-ny / 2, ny / 2 - 1, ny),
+            np.linspace(-nz / 2, nz / 2 - 1, nz),
             indexing="ij",
         )
         sx = nx / (2.0 * math.pi) / 2 ** scale
@@ -133,15 +133,14 @@ def _crop_filter(input_filter, scale, radius=None):
     return output_filter
 
 
-def _pinv(x, sigma, reg_scale=REG_SCALE):
+def _pinv(x, sigma):
     """
     Pseudoinverse with regularization
     sigma is the noise level
-    reg_scale is the scaling factor
-    pinv(x) = x / (x^2 + (sigma*reg_scale)**2)
+    pinv(x) = x / (x^2 + sigma^2)
 
     """
-    xinv = x / (x ** 2 + (sigma * reg_scale) ** 2)
+    xinv = x / (x ** 2 + sigma ** 2)
     return xinv
 
 
@@ -754,14 +753,12 @@ def hessian_rot(h):
             + h[2] * (h[1] * h[4] - h[3] * h[2])
         )
         # frobenius norm sqrt(l1**2 + l2**2 + l3**2)
-        frobenius = (
-            np.sqrt(
-                np.abs(h[0]) ** 2
-                + 2 * np.abs(h[1]) ** 2
-                + 2 * np.abs(h[2]) ** 2
-                + np.abs(h[3]) ** 2
-                + 2 * np.abs(h[4]) ** 2
-            )
+        frobenius = np.sqrt(
+            np.abs(h[0]) ** 2
+            + 2 * np.abs(h[1]) ** 2
+            + 2 * np.abs(h[2]) ** 2
+            + np.abs(h[3]) ** 2
+            + 2 * np.abs(h[4]) ** 2
             + np.abs(h[5]) ** 2
         )
 
