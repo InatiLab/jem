@@ -54,30 +54,24 @@ def rectify(data, polarity=1):
     return output
 
 
-def local_gain_field(f, w, sigma, scale=NORMALIZATION_SCALE):
+def local_gain_field(f, w=None, sigma=0.001, scale=NORMALIZATION_SCALE):
     """
     Local gain field
     Inverse of the local gain, i.e. multiply by this for local divisive normalization
     """
-    gain = _pinv(weighted_low_pass(f, w, sigma, scale), sigma)
+    if w is not None:
+        gain = _pinv(weighted_low_pass(f, w, sigma, scale), sigma)
+    else:
+        gain = _pinv(low_pass(f, scale), sigma)
 
     return gain
 
 
-def local_scale_normalization(d, w, sigma, scale=NORMALIZATION_SCALE):
+def local_scale_normalization(d, w, sigma=0.001, scale=NORMALIZATION_SCALE):
     """
-    Local normalization by the signal scale.
-    Signal scale is estimated as the mean absolute deviation
+    Local normalization by the signal mean.
     """
-    """
-    Local contrast normalization
-    """
-    if w is not None:
-        dev = weighted_high_pass(d, w, sigma, scale)
-        f = d * local_gain_field(np.abs(dev), w, sigma, scale)
-    else:
-        dev = high_pass(d, scale)
-        f = d * _pinv(low_pass(np.abs(dev), scale), sigma)
+    f = d * local_gain_field(d, w, sigma, scale)
 
     return f
 
@@ -89,10 +83,10 @@ def local_contrast_normalization(d, w=None, sigma=0.001, scale=NORMALIZATION_SCA
     """
     if w is not None:
         dev = weighted_high_pass(d, w, sigma, scale)
-        lc = dev * local_gain_field(np.abs(dev), w, sigma, scale)
     else:
         dev = high_pass(d, scale)
-        lc = dev * _pinv(low_pass(np.abs(dev), scale), sigma)
+
+    lc = dev * local_gain_field(np.abs(dev), w, sigma, scale)
 
     return lc
 
@@ -114,27 +108,21 @@ def laplacian_pyramid(d, w=None, sigma=0.001, num_scales=NUM_SCALES):
     # Initialize the pyramid
     lpyr = []
 
-    # High pass
-    if w is not None:
-        lp = weighted_low_pass(d, w, sigma, scale=0)
-    else:
-        lp = low_pass(d, scale=0)
-
-    # Compute the high pass and append
-    lpyr.append(d - lp)
-
-    # Recursive filtering with gaussian of scale=1
-    # halves the resolution every time
-    for _scale in range(num_scales):
-        # Replace the data with the low pass from the previous scale
-        d = lp.copy()
+    # For each scale blur at this scale and subtract from the previous scale
+    # initialize with the original data
+    previous = d
+    # Start with the scale 0 and go to num_scales
+    # HP=D-G(0), L0=G(0)-G(1), L1=G(1)-G(2), ..., LN=G(N)-G(N+1), LP=G(N+1)
+    for scale in range(num_scales + 1):
         if w is not None:
-            lp = weighted_low_pass(d, w, sigma, scale=1)
+            lp = weighted_low_pass(d, w, sigma, scale=scale)
         else:
-            lp = low_pass(d, scale=1)
+            lp = low_pass(d, scale=scale)
 
-        # Compute this level of the pyramid
-        lpyr.append(d - lp)
+        # Compute this level of the pyramid and append
+        lpyr.append(previous - lp)
+        # Replace the previous
+        previous = lp
 
     # The low pass is left
     lpyr.append(lp)

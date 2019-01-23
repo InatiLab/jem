@@ -1,6 +1,7 @@
 import numpy as np
 
-SIGNAL_MAX_ITER = 20
+SIGNAL_MAX_ITER = 5
+SIGMA_SCALE = 0.01
 
 
 def stats(data, w=None):
@@ -19,58 +20,48 @@ def stats(data, w=None):
     return mu, sigma
 
 
-def signal_likelihood(data, noise_level):
-    """Return a likelihood that data is signal
-    in SNR units, sigmoid with width 1, shifted to the right by 1
-    ie P(<1)=0, P(2)=0.46, P(3)=0.76, P(4)=0.91, P(5)=0.96
+def signal_weight(data, mu=1.0):
+    """Return a weight for the signal
+
+    w(x) = 1 - exp(-x/mu)
     """
-    p = (data > noise_level) * (
-        -1.0 + 2.0 / (1.0 + np.exp(-(data - noise_level) / noise_level))
-    )
-
-    return p
-
-
-def noise_likelihood(data, noise_level):
-    """Return a likelihood that data is not zero and noise.
-    noise_likelihood(x) = (x>0) * (1 - signal_likelihood(x))
-    """
-    p = (data > 0) * (1.0 - signal_likelihood(data, noise_level))
-
-    return p
-
-
-def signal_weight(data, sigma=1.0):
-    """Return a weight for (saturating exponential response)
-    w(x) = 1 - exp(-d/sigma)
-    """
-    w = 1.0 - np.exp(-data / sigma)
+    w = 1.0 - np.exp(-data / mu)
     return w
 
 
-def signal_stats(data, niter=3):
-    """Estimate the statistics of the signal and noise in an image
-    Iterative weighted estimation of signal mean and mad
+def noise_weight(data, mu=1.0):
+    """Return a weight for the noise
+
+    w(x) = (x>0) * exp(-x/mu)
+    """
+    w = (data > 0) * np.exp(-data / mu)
+    return w
+
+
+def signal_stats(data, niter=SIGNAL_MAX_ITER):
+    """Iterative weighted estimation of signal mean and signal lower bound
     """
 
     d = data[data > 0]
 
     # Assume that everything is signal to start with
-    mu_s, sigma_s = stats(d)
+    mu_s = np.mean(d)
+
     # iterate (two or three iterations is enough)
     for _iter in range(niter):
         # Get the likelihood
-        w_s = signal_weight(d, sigma_s)
+        w = signal_weight(d, mu_s)
         # Update
-        mu_s, sigma_s = stats(d, w_s)
+        mu_s = np.sum(w * d) / np.sum(w)
 
-    w_n = 1.0 - w_s
-    mu_n, sigma_n = stats(d, w_n)
+    # Estimate a lower bound on the signal
+    w_n = noise_weight(d, mu_s)
+    mu_n = np.sum(d * w_n) / np.sum(w_n)
 
-    return mu_s, sigma_s, mu_n, sigma_n
+    return mu_s, mu_n
 
 
-def global_scale(data, niter=SIGNAL_MAX_ITER):
+def global_scale(data, sigma_scale=SIGMA_SCALE, niter=SIGNAL_MAX_ITER):
     """Estimate signal and noise statistics and apply a global scale
 
     :param data: 2D or 3D magnitude image
@@ -79,17 +70,16 @@ def global_scale(data, niter=SIGNAL_MAX_ITER):
              noise level relative to signal (sigma_n)
     """
 
-    # Estimate the signal statistics
-    mu_s, sigma_s, mu_n, sigma_n = signal_stats(data, niter)
+    # Estimate the signal mean and signal lower bound
+    mu_s, mu_n = signal_stats(data, niter)
 
-    # Scale the signal by the dispersion
-    # signal dispersion of f is 1.0
-    f = data / sigma_s
+    # Compute a signal weight based on the signal lower bound
+    w = signal_weight(data, mu_n)
 
-    # Scale the noise leval
-    sigma_n = sigma_n / sigma_s
+    # Scale the signal by the signal mean
+    f = data / mu_s
 
-    # Get a signal likelihood
-    w_s = signal_likelihood(f, sigma_n)
+    # Set the reguralization factor to 0.01*scaled signal lower bound
+    sigma = sigma_scale * mu_n / mu_s
 
-    return f, w_s, sigma_n
+    return f, w, sigma
