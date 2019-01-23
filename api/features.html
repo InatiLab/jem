@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Features (jem.features) &mdash; JEM 0.3.4 documentation</title>
+  <title>Features (jem.features) &mdash; JEM 0.3.4.post1+g4db5fec documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.3.4
+                0.3.4.post1+g4db5fec
               </div>
             
           
@@ -221,16 +221,15 @@ Subtract the local mean and scale by the local mean absolute deviation</p>
 
 <dl class="function">
 <dt id="jem.features.local_gain_field">
-<code class="descclassname">jem.features.</code><code class="descname">local_gain_field</code><span class="sig-paren">(</span><em>f</em>, <em>w</em>, <em>sigma</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_gain_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_gain_field" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.features.</code><code class="descname">local_gain_field</code><span class="sig-paren">(</span><em>f</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_gain_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_gain_field" title="Permalink to this definition">¶</a></dt>
 <dd><p>Local gain field
 Inverse of the local gain, i.e. multiply by this for local divisive normalization</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="jem.features.local_scale_normalization">
-<code class="descclassname">jem.features.</code><code class="descname">local_scale_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_scale_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_scale_normalization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Local normalization by the signal scale.
-Signal scale is estimated as the mean absolute deviation</p>
+<code class="descclassname">jem.features.</code><code class="descname">local_scale_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma=0.001</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_scale_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_scale_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Local normalization by the signal mean.</p>
 </dd></dl>
 
 <dl class="function">

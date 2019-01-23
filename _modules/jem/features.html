@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.features &mdash; JEM 0.3.4 documentation</title>
+  <title>jem.features &mdash; JEM 0.3.4.post1+g4db5fec documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.3.4
+                0.3.4.post1+g4db5fec
               </div>
             
           
@@ -205,30 +205,24 @@
     <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="local_gain_field"><a class="viewcode-back" href="../../api/features.html#jem.features.local_gain_field">[docs]</a><span class="k">def</span> <span class="nf">local_gain_field</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="local_gain_field"><a class="viewcode-back" href="../../api/features.html#jem.features.local_gain_field">[docs]</a><span class="k">def</span> <span class="nf">local_gain_field</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Local gain field</span>
 <span class="sd">    Inverse of the local gain, i.e. multiply by this for local divisive normalization</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">gain</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">low_pass</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">gain</span></div>
 
 
-<div class="viewcode-block" id="local_scale_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_scale_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_scale_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="local_scale_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_scale_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_scale_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Local normalization by the signal scale.</span>
-<span class="sd">    Signal scale is estimated as the mean absolute deviation</span>
+<span class="sd">    Local normalization by the signal mean.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Local contrast normalization</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dev</span> <span class="o">=</span> <span class="n">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">dev</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">f</span></div>
 
@@ -240,10 +234,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">low_pass</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">lc</span></div>
 
@@ -265,27 +259,21 @@
     <span class="c1"># Initialize the pyramid</span>
     <span class="n">lpyr</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c1"># High pass</span>
-    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">lp</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">lp</span> <span class="o">=</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="c1"># Compute the high pass and append</span>
-    <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">lp</span><span class="p">)</span>
-
-    <span class="c1"># Recursive filtering with gaussian of scale=1</span>
-    <span class="c1"># halves the resolution every time</span>
-    <span class="k">for</span> <span class="n">_scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
-        <span class="c1"># Replace the data with the low pass from the previous scale</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># For each scale blur at this scale and subtract from the previous scale</span>
+    <span class="c1"># initialize with the original data</span>
+    <span class="n">previous</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="c1"># Start with the scale 0 and go to num_scales</span>
+    <span class="c1"># HP=D-G(0), L0=G(0)-G(1), L1=G(1)-G(2), ..., LN=G(N)-G(N+1), LP=G(N+1)</span>
+    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">lp</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">lp</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">lp</span> <span class="o">=</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">lp</span> <span class="o">=</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
 
-        <span class="c1"># Compute this level of the pyramid</span>
-        <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">lp</span><span class="p">)</span>
+        <span class="c1"># Compute this level of the pyramid and append</span>
+        <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">previous</span> <span class="o">-</span> <span class="n">lp</span><span class="p">)</span>
+        <span class="c1"># Replace the previous</span>
+        <span class="n">previous</span> <span class="o">=</span> <span class="n">lp</span>
 
     <span class="c1"># The low pass is left</span>
     <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
