@@ -8,7 +8,8 @@ from .features import (
     laplacian_pyramid,
     local_scale_normalization,
     local_contrast_normalization,
-    riff,
+    front_end_features,
+    fef_rotational_invariants,
     NUM_SCALES,
     NORMALIZATION_SCALE,
 )
@@ -98,7 +99,7 @@ def coil_correction(input_image, scale, output):
 )
 @click.argument("input_image", type=click.STRING)
 @click.option(
-    "--nscales", type=click.INT, default=NUM_SCALES, help="number of spatial scales"
+    "--num_scales", type=click.INT, default=NUM_SCALES, help="number of spatial scales"
 )
 @click.option(
     "--normalization_scale",
@@ -106,7 +107,7 @@ def coil_correction(input_image, scale, output):
     default=NORMALIZATION_SCALE,
     help="scale for input gain control",
 )
-def compute_laplacian_pyramid(input_image, nscales, normalization_scale, output):
+def compute_laplacian_pyramid(input_image, num_scales, normalization_scale, output):
     """Compute rotationally invariant features."""
 
     click.echo(f"Compute rotationally invariant features for {input_image}.")
@@ -119,10 +120,12 @@ def compute_laplacian_pyramid(input_image, nscales, normalization_scale, output)
     f, w, sigma = global_scale(data)
 
     # Local scale normalization
-    f_c = local_scale_normalization(f, w, sigma, normalization_scale)
+    f_c = local_scale_normalization(
+        f, w=w, sigma=sigma, normalization_scale=normalization_scale
+    )
 
     # compute the laplacian pyramid
-    lpyr = laplacian_pyramid(f_c, w, sigma, nscales)
+    lpyr = laplacian_pyramid(f_c, w=w, sigma=sigma, num_scales=num_scales)
 
     # Smush into a single array and convert to single precision
     # with pyramed level as the fourth dimension
@@ -136,7 +139,7 @@ def compute_laplacian_pyramid(input_image, nscales, normalization_scale, output)
     click.echo(f"Wrote Laplacian Pyramid to {output}.")
 
 
-@click.command(name=riff)
+@click.command()
 @click.option(
     "--output",
     type=click.STRING,
@@ -145,7 +148,7 @@ def compute_laplacian_pyramid(input_image, nscales, normalization_scale, output)
 )
 @click.argument("input_image", type=click.STRING)
 @click.option(
-    "--nscales", type=click.INT, default=NUM_SCALES, help="number of spatial scales"
+    "--num_scales", type=click.INT, default=NUM_SCALES, help="number of spatial scales"
 )
 @click.option(
     "--normalization_scale",
@@ -153,7 +156,8 @@ def compute_laplacian_pyramid(input_image, nscales, normalization_scale, output)
     default=NORMALIZATION_SCALE,
     help="scale for input gain control",
 )
-def compute_riff(input_image, nscales, normalization_scale, output):
+@click.option("--lowpass/--no-lowpass", default=True)
+def riff(input_image, num_scales, normalization_scale, output, lowpass):
     """Compute rotationally invariant features."""
 
     click.echo(f"Compute rotationally invariant features for {input_image}.")
@@ -162,15 +166,41 @@ def compute_riff(input_image, nscales, normalization_scale, output):
     im = nibabel.load(input_image)
     data = im.get_data().astype(np.float32)
 
-    # compute the rotationally invariant features
-    rot = riff(data, num_scales=nscales, normalization_scale=normalization_scale)
+    # Global scaling, signal likelihood, noise level
+    f, w, sigma = global_scale(data)
+
+    # Local scale normalization
+    f = local_scale_normalization(
+        f, w=w, sigma=sigma, normalization_scale=normalization_scale
+    )
+
+    # compute the frond end features
+    fef = front_end_features(f, w=w, sigma=sigma, num_scales=num_scales)
+
+    # rotational invariants
+    fef = fef_rotational_invariants(fef, inplace=True)
 
     # convert to single precision and smush into a single array
     # with feature number as the fourth dimension
+    # level changes fastest on disk, then subband, then order
+    # HP,Zero,LP,|HP|,|Zero|,|LP|,|Two|,I1(Two),I2(Two)
+
     feats = []
-    for scale in rot:
-        for feat in scale["bandpass"] + scale["gradient"] + scale["hessian"]:
-            feats.append(feat.astype(np.float32))
+    for m in range(2):
+        feats.append(fef["high_pass"][m].astype(np.float32))
+        for n in range(num_scales):
+            feats.append(fef["zero"][n][m].astype(np.float32))
+        if lowpass:
+            feats.append(fef["low_pass"][m].astype(np.float32))
+
+    for n in range(num_scales):
+        feats.append(fef["one"][n][0].astype(np.float32))
+
+    M = len(fef["two"][0])
+    for m in range(M):
+        for n in range(num_scales):
+            feats.append(fef["two"][n][m].astype(np.float32))
+
     feats = np.stack(feats, axis=-1)
 
     # write out the result in the same format and preserve the header
