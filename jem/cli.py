@@ -71,7 +71,7 @@ def contrast_normalization(input_image, scale, output):
     "--scale", type=click.INT, default=NORMALIZATION_SCALE, help="Scale for smoothing."
 )
 @click.argument("input_image", type=click.STRING)
-def coil_correction(input_image, scale, output):
+def coil_correction(input_image, normalization_scale, output):
     """Compute and apply receive coil intensity correction."""
 
     # open the images
