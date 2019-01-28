@@ -156,7 +156,7 @@ def compute_laplacian_pyramid(input_image, num_scales, normalization_scale, outp
     default=NORMALIZATION_SCALE,
     help="scale for input gain control",
 )
-@click.option("--lowpass/--no-lowpass", default=True)
+@click.option("--lowpass/--no-lowpass", default=False)
 def riff(input_image, num_scales, normalization_scale, output, lowpass):
     """Compute rotationally invariant features."""
 
