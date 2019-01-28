@@ -71,7 +71,7 @@ def contrast_normalization(input_image, scale, output):
     "--scale", type=click.INT, default=NORMALIZATION_SCALE, help="Scale for smoothing."
 )
 @click.argument("input_image", type=click.STRING)
-def coil_correction(input_image, scale, output):
+def coil_correction(input_image, normalization_scale, output):
     """Compute and apply receive coil intensity correction."""
 
     # open the images
@@ -80,7 +80,7 @@ def coil_correction(input_image, scale, output):
     # load the image data and the coil correction data and apply
     data = im.get_data().astype(np.float32)
     f, w, sigma = global_scale(data)
-    data_corr = local_scale_normalization(f, w, sigma, scale=scale)
+    data_corr = local_scale_normalization(f, normalization_scale=scale, w=w, sigma=sigma)
 
     # write out the result as floating point and preserve the header
     out_im = type(im)(data_corr.astype(np.float32), affine=None, header=im.header)
