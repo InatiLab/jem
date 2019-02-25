@@ -186,12 +186,14 @@ def riff(input_image, num_scales, normalization_scale, output, lowpass):
     # HP,Zero,LP,|HP|,|Zero|,|LP|,|Two|,I1(Two),I2(Two)
 
     feats = []
-    for m in range(2):
-        feats.append(fef["high_pass"][m].astype(np.float32))
-        for n in range(num_scales):
-            feats.append(fef["zero"][n][m].astype(np.float32))
-        if lowpass:
-            feats.append(fef["low_pass"][m].astype(np.float32))
+    feats.append(fef["high_pass"][0].astype(np.float32))
+    for n in range(num_scales):
+        feats.append(fef["zero"][n][0].astype(np.float32))
+    if lowpass:
+        feats.append(fef["low_pass"][0].astype(np.float32))
+    feats.append(fef["high_pass"][1].astype(np.float32))
+    for n in range(num_scales):
+        feats.append(fef["zero"][n][1].astype(np.float32))
 
     for n in range(num_scales):
         feats.append(fef["one"][n][0].astype(np.float32))

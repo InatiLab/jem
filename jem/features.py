@@ -213,7 +213,7 @@ def fef_rotational_invariants(fef, inplace=True):
         }
 
     rfef["high_pass"] = dog_rotational_invariants(fef["high_pass"], order=0)
-    rfef["low_pass"] = dog_rotational_invariants(fef["low_pass"], order=0)
+    rfef["low_pass"] = [fef["low_pass"]]
     for n in range(num_scales):
         rfef["zero"][n] = dog_rotational_invariants(fef["zero"][n], order=0)
         rfef["one"][n] = dog_rotational_invariants(fef["one"][n], order=1)
