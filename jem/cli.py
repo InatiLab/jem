@@ -80,7 +80,7 @@ def coil_correction(input_image, scale, output):
     # load the image data and the coil correction data and apply
     data = im.get_data().astype(np.float32)
     f, w, sigma = global_scale(data)
-    data_corr = local_scale_normalization(f, w, sigma, scale=scale)
+    data_corr = local_scale_normalization(f, normalization_scale=scale, w=w, sigma=sigma)
 
     # write out the result as floating point and preserve the header
     out_im = type(im)(data_corr.astype(np.float32), affine=None, header=im.header)
@@ -156,7 +156,7 @@ def compute_laplacian_pyramid(input_image, num_scales, normalization_scale, outp
     default=NORMALIZATION_SCALE,
     help="scale for input gain control",
 )
-@click.option("--lowpass/--no-lowpass", default=True)
+@click.option("--lowpass/--no-lowpass", default=False)
 def riff(input_image, num_scales, normalization_scale, output, lowpass):
     """Compute rotationally invariant features."""
 
@@ -186,12 +186,14 @@ def riff(input_image, num_scales, normalization_scale, output, lowpass):
     # HP,Zero,LP,|HP|,|Zero|,|LP|,|Two|,I1(Two),I2(Two)
 
     feats = []
-    for m in range(2):
-        feats.append(fef["high_pass"][m].astype(np.float32))
-        for n in range(num_scales):
-            feats.append(fef["zero"][n][m].astype(np.float32))
-        if lowpass:
-            feats.append(fef["low_pass"][m].astype(np.float32))
+    feats.append(fef["high_pass"][0].astype(np.float32))
+    for n in range(num_scales):
+        feats.append(fef["zero"][n][0].astype(np.float32))
+    if lowpass:
+        feats.append(fef["low_pass"][0].astype(np.float32))
+    feats.append(fef["high_pass"][1].astype(np.float32))
+    for n in range(num_scales):
+        feats.append(fef["zero"][n][1].astype(np.float32))
 
     for n in range(num_scales):
         feats.append(fef["one"][n][0].astype(np.float32))
