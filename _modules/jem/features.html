@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.features &mdash; JEM 0.3.5 documentation</title>
+  <title>jem.features &mdash; JEM 0.3.7.post2+g832724d documentation</title>
   
 
   
@@ -17,33 +17,37 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+        <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -57,7 +61,7 @@
             
             
               <div class="version">
-                0.3.5
+                0.3.7.post2+g832724d
               </div>
             
           
@@ -151,46 +155,13 @@
   <h1>Source code for jem.features</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">_pinv</span><span class="p">,</span>
-    <span class="n">high_pass</span><span class="p">,</span>
-    <span class="n">low_pass</span><span class="p">,</span>
-    <span class="n">band_pass</span><span class="p">,</span>
-    <span class="n">gradient_band_pass</span><span class="p">,</span>
-    <span class="n">gradient_amplitude</span><span class="p">,</span>
-    <span class="n">hessian_band_pass</span><span class="p">,</span>
-    <span class="n">hessian_amplitude</span><span class="p">,</span>
-    <span class="n">hessian_rot</span><span class="p">,</span>
-    <span class="n">weighted_high_pass</span><span class="p">,</span>
-    <span class="n">weighted_low_pass</span><span class="p">,</span>
-    <span class="n">weighted_band_pass</span><span class="p">,</span>
-    <span class="n">weighted_gradient_band_pass</span><span class="p">,</span>
-    <span class="n">weighted_hessian_band_pass</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.signal_stats</span> <span class="k">import</span> <span class="n">global_scale</span>
+<span class="kn">from</span> <span class="nn">.filters</span> <span class="k">import</span> <span class="n">_pinv</span><span class="p">,</span> <span class="n">dog</span><span class="p">,</span> <span class="n">dog_rotational_invariants</span>
 
 <span class="c1"># Number of spatial scales</span>
-<span class="n">NUM_SCALES</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">NUM_SCALES</span> <span class="o">=</span> <span class="mi">4</span>
 
 <span class="c1"># Scales for normalization / gain control</span>
 <span class="n">NORMALIZATION_SCALE</span> <span class="o">=</span> <span class="mi">5</span>
-
-
-<span class="k">def</span> <span class="nf">_normalize_bpd_filters</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;In place weighted local normalization of a set of band pass derivative filters</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
-        <span class="n">amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
-        <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">gain</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]]</span>
-
-        <span class="n">amp</span> <span class="o">=</span> <span class="n">gradient_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">])</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
-        <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">gain</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]]</span>
-
-        <span class="n">amp</span> <span class="o">=</span> <span class="n">hessian_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">])</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
-        <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">gain</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]]</span>
 
 
 <div class="viewcode-block" id="rectify"><a class="viewcode-back" href="../../api/features.html#jem.features.rectify">[docs]</a><span class="k">def</span> <span class="nf">rectify</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -205,83 +176,129 @@
     <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="local_gain_field"><a class="viewcode-back" href="../../api/features.html#jem.features.local_gain_field">[docs]</a><span class="k">def</span> <span class="nf">local_gain_field</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Local gain field</span>
-<span class="sd">    Inverse of the local gain, i.e. multiply by this for local divisive normalization</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">low_pass</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">gain</span></div>
-
-
-<div class="viewcode-block" id="local_scale_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_scale_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_scale_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="local_scale_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_scale_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_scale_normalization</span><span class="p">(</span>
+    <span class="n">d</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Local normalization by the signal mean.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span>
+        <span class="n">dog</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">),</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">f</span></div>
 
 
-<div class="viewcode-block" id="local_contrast_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_contrast_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_contrast_normalization</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">):</span>
+<div class="viewcode-block" id="local_contrast_normalization"><a class="viewcode-back" href="../../api/features.html#jem.features.local_contrast_normalization">[docs]</a><span class="k">def</span> <span class="nf">local_contrast_normalization</span><span class="p">(</span>
+    <span class="n">d</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Local contrast normalization</span>
 <span class="sd">    Subtract the local mean and scale by the local mean absolute deviation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dev</span> <span class="o">=</span> <span class="n">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">dev</span> <span class="o">=</span> <span class="n">high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-
-    <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">local_gain_field</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">dev</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">dog</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span>
+    <span class="n">lc</span> <span class="o">=</span> <span class="n">dev</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span>
+        <span class="n">dog</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">normalization_scale</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">),</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">lc</span></div>
 
 
-<div class="viewcode-block" id="laplacian_pyramid"><a class="viewcode-back" href="../../api/features.html#jem.features.laplacian_pyramid">[docs]</a><span class="k">def</span> <span class="nf">laplacian_pyramid</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">):</span>
+<div class="viewcode-block" id="gaussian_pyramid"><a class="viewcode-back" href="../../api/features.html#jem.features.gaussian_pyramid">[docs]</a><span class="k">def</span> <span class="nf">gaussian_pyramid</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pyramid from gaussian derivative filters with signal likelihood weighting</span>
+
+<span class="sd">    :param d: 2D or 3D numpy array</span>
+<span class="sd">    :param order: Gaussian derivative order, 0, 1, or 2</span>
+<span class="sd">    :param w: signal likelihood</span>
+<span class="sd">    :param sigma: noise level</span>
+<span class="sd">    :param nscales: int number of scales</span>
+<span class="sd">    :return: list</span>
+
+<span class="sd">    The pyramid is organized by scale,</span>
+<span class="sd">    Level 0, Level 1, .., Level num_scales-1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pyr</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">dog</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">pyr</span></div>
+
+
+<div class="viewcode-block" id="difference_pyramid"><a class="viewcode-back" href="../../api/features.html#jem.features.difference_pyramid">[docs]</a><span class="k">def</span> <span class="nf">difference_pyramid</span><span class="p">(</span><span class="n">pyr</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Difference between levels of a derivative of gaussian pyramid</span>
+
+<span class="sd">    :param d: gaussian pyramid</span>
+<span class="sd">    :param inplace: bool, do the work in place or make a copy, default False</span>
+<span class="sd">    :return: list of differences</span>
+
+<span class="sd">    The output has length one less than the input</span>
+<span class="sd">    diff_pyr = [pyr[0] - pyr[1], pyr[1] - pyr[2], ..., pyr[N-2] - pyr[N-1]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pyr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pyr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pyr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">pyr</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">M</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">M</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">N</span>
+
+    <span class="c1"># the first N-1 levels</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">M</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
+                <span class="n">output</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">pyr</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">m</span><span class="p">]</span> <span class="o">-</span> <span class="n">pyr</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="n">m</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">pyr</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">-</span> <span class="n">pyr</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># pop off the last level (the low pass)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="laplacian_pyramid"><a class="viewcode-back" href="../../api/features.html#jem.features.laplacian_pyramid">[docs]</a><span class="k">def</span> <span class="nf">laplacian_pyramid</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Laplacian pyramid from gaussian filters with signal likelihood weighting</span>
 
 <span class="sd">    :param d: 2D or 3D numpy array</span>
 <span class="sd">    :param w: signal likelihood</span>
 <span class="sd">    :param sigma: noise level</span>
 <span class="sd">    :param nscales: int number of scales</span>
-<span class="sd">    :return: list, one dictionary per level</span>
+<span class="sd">    :return: list of length num_scales + 1</span>
 
-<span class="sd">    The pyramid is organized by scale,</span>
-<span class="sd">    high pass, level 0, level 1, .., Level num_scales-1, low pass</span>
+<span class="sd">    The pyramid is organized by scale</span>
+<span class="sd">    high pass, level 0, level 2, .., level num_scales-1, low pass</span>
+
 <span class="sd">    Adding the output back together produces the original input data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Initialize the pyramid</span>
-    <span class="n">lpyr</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Gaussian pyramid.  Get 1 extra level.</span>
+    <span class="n">pyr</span> <span class="o">=</span> <span class="n">gaussian_pyramid</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">num_scales</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span>
 
-    <span class="c1"># For each scale blur at this scale and subtract from the previous scale</span>
-    <span class="c1"># initialize with the original data</span>
-    <span class="n">previous</span> <span class="o">=</span> <span class="n">d</span>
-    <span class="c1"># Start with the scale 0 and go to num_scales</span>
-    <span class="c1"># HP=D-G(0), L0=G(0)-G(1), L1=G(1)-G(2), ..., LN=G(N)-G(N+1), LP=G(N+1)</span>
-    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">lp</span> <span class="o">=</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">lp</span> <span class="o">=</span> <span class="n">low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+    <span class="c1"># Save the high pass and the low pass</span>
+    <span class="n">high_pass</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">pyr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">low_pass</span> <span class="o">=</span> <span class="n">pyr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="c1"># Compute this level of the pyramid and append</span>
-        <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">previous</span> <span class="o">-</span> <span class="n">lp</span><span class="p">)</span>
-        <span class="c1"># Replace the previous</span>
-        <span class="n">previous</span> <span class="o">=</span> <span class="n">lp</span>
+    <span class="c1"># The difference pyramid (in place)</span>
+    <span class="n">pyr</span> <span class="o">=</span> <span class="n">difference_pyramid</span><span class="p">(</span><span class="n">pyr</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="c1"># The low pass is left</span>
-    <span class="n">lpyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+    <span class="c1"># Insert the high at the front and the low pass at the end</span>
+    <span class="n">pyr</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">high_pass</span><span class="p">)</span>
+    <span class="n">pyr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">low_pass</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">lpyr</span></div>
+    <span class="k">return</span> <span class="n">pyr</span></div>
 
 
-<div class="viewcode-block" id="band_pass_derivative_filters"><a class="viewcode-back" href="../../api/features.html#jem.features.band_pass_derivative_filters">[docs]</a><span class="k">def</span> <span class="nf">band_pass_derivative_filters</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">):</span>
+<div class="viewcode-block" id="front_end_features"><a class="viewcode-back" href="../../api/features.html#jem.features.front_end_features">[docs]</a><span class="k">def</span> <span class="nf">front_end_features</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Multi-scale image filters from the zeroth, first, and</span>
 <span class="sd">    second order gaussian derivatives with signal likelihood weighting</span>
 
@@ -289,93 +306,70 @@
 <span class="sd">    :param w: signal likelihood</span>
 <span class="sd">    :param sigma: noise level</span>
 <span class="sd">    :param num_scales: int number of scales</span>
-<span class="sd">    :return: list, one dictionary per level</span>
+<span class="sd">    :return: dictionary {high_pass, zelist, one dictionary per level</span>
 
-<span class="sd">    The multi scale bandpass derivatives are organized by scale,</span>
+<span class="sd">    High pass</span>
+<span class="sd">    Multi scale bandpass derivatives are organized by scale,</span>
 <span class="sd">    zero (band pass), first (gradient), second (hessian)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Initialize the features list</span>
-    <span class="n">bpdf</span> <span class="o">=</span> <span class="p">[{}</span> <span class="k">for</span> <span class="n">_scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">)]</span>
+    <span class="n">feats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;high_pass&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;zero&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_scales</span><span class="p">,</span>
+        <span class="s2">&quot;one&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_scales</span><span class="p">,</span>
+        <span class="s2">&quot;two&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_scales</span><span class="p">,</span>
+        <span class="s2">&quot;low_pass&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
 
-    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
-        <span class="c1"># Bandpass: zeroth order gaussian derivative</span>
-        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">weighted_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)]</span>
+    <span class="c1"># High pass, zeroth order, low pass</span>
+    <span class="c1"># i.e. Laplacian pyramid</span>
+    <span class="n">pyr</span> <span class="o">=</span> <span class="n">laplacian_pyramid</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">num_scales</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;high_pass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pyr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;zero&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pyr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;low_pass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pyr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">pyr</span>
 
-        <span class="c1"># Gradient: first order gaussian derivates</span>
-        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weighted_gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="c1"># First order, gradient</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;one&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaussian_pyramid</span><span class="p">(</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">num_scales</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span>
+    <span class="p">)</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;one&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">difference_pyramid</span><span class="p">(</span><span class="n">feats</span><span class="p">[</span><span class="s2">&quot;one&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="c1"># Hessian: second order gaussian derivatives</span>
-        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weighted_hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bpdf</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="c1"># Second order, hessian</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;two&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaussian_pyramid</span><span class="p">(</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_scales</span><span class="o">=</span><span class="n">num_scales</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span>
+    <span class="p">)</span>
+    <span class="n">feats</span><span class="p">[</span><span class="s2">&quot;two&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">difference_pyramid</span><span class="p">(</span><span class="n">feats</span><span class="p">[</span><span class="s2">&quot;two&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">bpdf</span></div>
-
-
-<div class="viewcode-block" id="rotational_invariants"><a class="viewcode-back" href="../../api/features.html#jem.features.rotational_invariants">[docs]</a><span class="k">def</span> <span class="nf">rotational_invariants</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute rotational invariants of a set of band pass derivative filters</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># At each level</span>
-    <span class="c1">#    bandpass:</span>
-    <span class="c1">#       2 rotational invariant: bp, |bp|</span>
-    <span class="c1">#    gradient:</span>
-    <span class="c1">#       1 rotational invariant: |g|</span>
-    <span class="c1">#    hessian:</span>
-    <span class="c1">#       in 2D, 3 rotational invariants: Tr(H), Det(H), |H|</span>
-    <span class="c1">#       in 3D, 4 rotational invariants: Tr(H), Det(H), Sec, |H|</span>
-
-    <span class="c1"># Initialize the features list</span>
-    <span class="n">num_scales</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-    <span class="n">rot</span> <span class="o">=</span> <span class="p">[{}</span> <span class="k">for</span> <span class="n">_scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">)]</span>
-
-    <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
-        <span class="c1"># G0</span>
-        <span class="n">rot</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;bandpass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
-        <span class="p">]</span>
-        <span class="c1"># G1</span>
-        <span class="n">rot</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">gradient_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;gradient&quot;</span><span class="p">])]</span>
-        <span class="c1"># G2</span>
-        <span class="n">rot</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hessian_rot</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;hessian&quot;</span><span class="p">]))</span>
-
-    <span class="k">return</span> <span class="n">rot</span></div>
+    <span class="k">return</span> <span class="n">feats</span></div>
 
 
-<div class="viewcode-block" id="riff"><a class="viewcode-back" href="../../api/features.html#jem.features.riff">[docs]</a><span class="k">def</span> <span class="nf">riff</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">,</span>
-    <span class="n">num_scales</span><span class="o">=</span><span class="n">NUM_SCALES</span><span class="p">,</span>
-    <span class="n">normalization_scale</span><span class="o">=</span><span class="n">NORMALIZATION_SCALE</span><span class="p">,</span>
-    <span class="n">local_normalization</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Rotational invariant front end features</span>
+<div class="viewcode-block" id="fef_rotational_invariants"><a class="viewcode-back" href="../../api/features.html#jem.features.fef_rotational_invariants">[docs]</a><span class="k">def</span> <span class="nf">fef_rotational_invariants</span><span class="p">(</span><span class="n">fef</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rotational invariants of the front end features</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Global scaling, signal likelihood, noise level</span>
-    <span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">global_scale</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="c1"># Local scale normalization</span>
-    <span class="n">f_c</span> <span class="o">=</span> <span class="n">local_scale_normalization</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
-
-    <span class="c1"># Multi-scale band pass derivative filters</span>
-    <span class="n">bpdf</span> <span class="o">=</span> <span class="n">band_pass_derivative_filters</span><span class="p">(</span><span class="n">f_c</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">num_scales</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
-
-    <span class="c1"># Local gain control</span>
-    <span class="k">if</span> <span class="n">local_normalization</span><span class="p">:</span>
-        <span class="n">_normalize_bpd_filters</span><span class="p">(</span><span class="n">bpdf</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">normalization_scale</span><span class="p">)</span>
+    <span class="n">num_scales</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fef</span><span class="p">[</span><span class="s2">&quot;zero&quot;</span><span class="p">])</span>
 
     <span class="c1"># Rotational invariants</span>
-    <span class="n">rot</span> <span class="o">=</span> <span class="n">rotational_invariants</span><span class="p">(</span><span class="n">bpdf</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+        <span class="n">rfef</span> <span class="o">=</span> <span class="n">fef</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rfef</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;high_pass&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;zero&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_scales</span><span class="p">,</span>
+            <span class="s2">&quot;one&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_scales</span><span class="p">,</span>
+            <span class="s2">&quot;two&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_scales</span><span class="p">,</span>
+            <span class="s2">&quot;low_pass&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
 
-    <span class="k">return</span> <span class="n">rot</span></div>
+    <span class="n">rfef</span><span class="p">[</span><span class="s2">&quot;high_pass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dog_rotational_invariants</span><span class="p">(</span><span class="n">fef</span><span class="p">[</span><span class="s2">&quot;high_pass&quot;</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">rfef</span><span class="p">[</span><span class="s2">&quot;low_pass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">fef</span><span class="p">[</span><span class="s2">&quot;low_pass&quot;</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_scales</span><span class="p">):</span>
+        <span class="n">rfef</span><span class="p">[</span><span class="s2">&quot;zero&quot;</span><span class="p">][</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">dog_rotational_invariants</span><span class="p">(</span><span class="n">fef</span><span class="p">[</span><span class="s2">&quot;zero&quot;</span><span class="p">][</span><span class="n">n</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">rfef</span><span class="p">[</span><span class="s2">&quot;one&quot;</span><span class="p">][</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">dog_rotational_invariants</span><span class="p">(</span><span class="n">fef</span><span class="p">[</span><span class="s2">&quot;one&quot;</span><span class="p">][</span><span class="n">n</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">rfef</span><span class="p">[</span><span class="s2">&quot;two&quot;</span><span class="p">][</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">dog_rotational_invariants</span><span class="p">(</span><span class="n">fef</span><span class="p">[</span><span class="s2">&quot;two&quot;</span><span class="p">][</span><span class="n">n</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rfef</span></div>
 </pre></div>
 
            </div>
@@ -405,28 +399,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
-        <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

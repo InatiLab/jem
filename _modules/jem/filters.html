@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>jem.filters &mdash; JEM 0.3.5 documentation</title>
+  <title>jem.filters &mdash; JEM 0.3.7.post2+g832724d documentation</title>
   
 
   
@@ -17,33 +17,37 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+        <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -57,7 +61,7 @@
             
             
               <div class="version">
-                0.3.5
+                0.3.7.post2+g832724d
               </div>
             
           
@@ -324,95 +328,6 @@
         <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="gaussian_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gaussian_kernel">[docs]</a><span class="k">def</span> <span class="nf">gaussian_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Rotationally symmetric Gaussian filter kernel in the image domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Get the radius scaled coordinate system</span>
-    <span class="n">r</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-
-    <span class="c1"># Compute filter as a function of radius</span>
-    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-
-    <span class="c1"># The filter in the image domain</span>
-    <span class="n">im_filter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">g</span><span class="p">))))</span>
-
-    <span class="c1"># Cropped</span>
-    <span class="n">im_filter</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">im_filter</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">im_filter</span></div>
-
-
-<div class="viewcode-block" id="high_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass">[docs]</a><span class="k">def</span> <span class="nf">high_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    High pass filter</span>
-<span class="sd">    data - G(data,s)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">hp</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">hp</span></div>
-
-
-<div class="viewcode-block" id="high_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">high_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    High pass filter kernel in the image domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">hp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">gaussian_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">hp</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">shape</span>
-        <span class="n">hp</span><span class="p">[</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">shape</span>
-        <span class="n">hp</span><span class="p">[</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nz</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
-
-    <span class="k">return</span> <span class="n">hp</span></div>
-
-
-<div class="viewcode-block" id="low_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.low_pass">[docs]</a><span class="k">def</span> <span class="nf">low_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Low pass filter</span>
-<span class="sd">    G(data,s)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lp</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">lp</span></div>
-
-
-<div class="viewcode-block" id="low_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.low_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">low_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Low pass filter kernel in the image domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lp</span> <span class="o">=</span> <span class="n">gaussian_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
-    <span class="n">lp</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">lp</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">lp</span></div>
-
-
-<div class="viewcode-block" id="band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass">[docs]</a><span class="k">def</span> <span class="nf">band_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Band pass filter</span>
-<span class="sd">    Difference of two gaussians</span>
-<span class="sd">    G(data, s) - G(data, s+1)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">d1</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">d2</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">bp</span> <span class="o">=</span> <span class="n">d1</span> <span class="o">-</span> <span class="n">d2</span>
-    <span class="k">return</span> <span class="n">bp</span></div>
-
-
-<div class="viewcode-block" id="band_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.band_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">band_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Band pass filter kernel in the image domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">r_1</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">r_2</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r_1</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r_2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">bp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">g</span><span class="p">))))</span>
-    <span class="n">bp</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">bp</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">bp</span></div>
-
-
 <div class="viewcode-block" id="gradient"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gradient">[docs]</a><span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gradient, Gaussian 1st order partial derivative filter in the fourier domain</span>
@@ -457,7 +372,7 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
             <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
             <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
-            <span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+            <span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dz</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
@@ -465,6 +380,103 @@
                 <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
             <span class="p">)</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="hessian"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian">[docs]</a><span class="k">def</span> <span class="nf">hessian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hessian, Gaussian 2nd order partial derivatives filter in the fourier domain</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Gausian 2nd derivative in each direction</span>
+    <span class="c1"># (i*x)*(i*y)*g, etc</span>
+
+    <span class="c1"># Pad</span>
+    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="c1"># Get the scaled coordinate system</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="c1"># Ensure that real functions stay real</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
+            <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
+            <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dxz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dyz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="n">dzz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="c1"># Crop</span>
+        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dxz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dyz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">dzz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dzz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="c1"># Ensure that real functions stay real</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
+            <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
+            <span class="n">dxz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxz</span><span class="p">)</span>
+            <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyy</span><span class="p">)</span>
+            <span class="n">dyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyz</span><span class="p">)</span>
+            <span class="n">dzz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dzz</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dxz</span><span class="p">,</span> <span class="n">dyy</span><span class="p">,</span> <span class="n">dyz</span><span class="p">,</span> <span class="n">dzz</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="high_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.high_pass">[docs]</a><span class="k">def</span> <span class="nf">high_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    High pass filter</span>
+<span class="sd">    data - G(data,s)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hp</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hp</span></div>
+
+
+<div class="viewcode-block" id="gaussian_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gaussian_kernel">[docs]</a><span class="k">def</span> <span class="nf">gaussian_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rotationally symmetric Gaussian filter kernel in the image domain</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get the radius scaled coordinate system</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">_radius</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="c1"># Compute filter as a function of radius</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># The filter in the image domain</span>
+    <span class="n">im_filter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">g</span><span class="p">))))</span>
+
+    <span class="c1"># Cropped</span>
+    <span class="n">im_filter</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">im_filter</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">im_filter</span></div>
 
 
 <div class="viewcode-block" id="gradient_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gradient_kernel">[docs]</a><span class="k">def</span> <span class="nf">gradient_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -505,73 +517,6 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="hessian"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian">[docs]</a><span class="k">def</span> <span class="nf">hessian</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Hessian, Gaussian 2nd order partial derivatives filter in the fourier domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Gausian 2nd derivative in each direction</span>
-    <span class="c1"># (i*x)*(i*y)*g, etc</span>
-
-    <span class="c1"># Pad</span>
-    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-
-    <span class="c1"># Get the scaled coordinate system</span>
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="c1"># Crop</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="c1"># Ensure that real functions stay real</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
-            <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
-            <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">]</span>
-
-    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dxz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dyz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dzz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="c1"># Crop</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dxz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dyz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">dzz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dzz</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="c1"># Ensure that real functions stay real</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
-            <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
-            <span class="n">dxz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxz</span><span class="p">)</span>
-            <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyy</span><span class="p">)</span>
-            <span class="n">dyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyz</span><span class="p">)</span>
-            <span class="n">dzz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dzz</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dxz</span><span class="p">,</span> <span class="n">dyy</span><span class="p">,</span> <span class="n">dyz</span><span class="p">,</span> <span class="n">dzz</span><span class="p">]</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
-            <span class="p">)</span>
-        <span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="hessian_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian_kernel">[docs]</a><span class="k">def</span> <span class="nf">hessian_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Hessian, Gaussian 2nd order partial derivatives filter kernel in the image domain</span>
@@ -597,220 +542,6 @@
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
         <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dxz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dzz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dxz</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dxz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dyz</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dyz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dzz</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dzz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dxz</span><span class="p">,</span> <span class="n">dyy</span><span class="p">,</span> <span class="n">dyz</span><span class="p">,</span> <span class="n">dzz</span><span class="p">]</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">ndim</span>
-            <span class="p">)</span>
-        <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="gradient_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gradient_band_pass">[docs]</a><span class="k">def</span> <span class="nf">gradient_band_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Gradient, Gaussian 1st order partial derivative filter in the fourier domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Gausian gradient in each direction</span>
-    <span class="c1"># g = G(s) - G(s+1)</span>
-    <span class="c1"># i*x*g, i*y*g, i*z*g etc.</span>
-
-    <span class="c1"># Pad to the bigger scale</span>
-    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-
-    <span class="c1"># Get the scaled coordinate system</span>
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="c1"># Crop</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># Ensure that real functions stay real</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
-            <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">]</span>
-
-    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="c1"># Crop</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># Ensure that real functions stay real</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
-            <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
-            <span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
-            <span class="p">)</span>
-        <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="gradient_band_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.gradient_band_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">gradient_band_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Gradient, Gaussian 1st order partial derivative filter kernel in the image domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Gausian gradient in each direction</span>
-    <span class="c1"># g = G(s) - G(s+1)</span>
-    <span class="c1"># i*x*g, i*y*g, i*z*g etc.</span>
-
-    <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">]</span>
-
-    <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dy</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dz</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">ndim</span>
-            <span class="p">)</span>
-        <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="hessian_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian_band_pass">[docs]</a><span class="k">def</span> <span class="nf">hessian_band_pass</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Hessian, Gaussian 2nd order partial derivatives filter in the fourier domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Gausian 2nd derivative in each direction</span>
-    <span class="c1"># g = G(s) - G(s+1)</span>
-    <span class="c1"># from one scale to the next r**2 -&gt; 4*r**2</span>
-    <span class="c1"># (i*x)*(i*y)*g, etc</span>
-
-    <span class="c1"># Pad to the bigger scale</span>
-    <span class="n">pd</span> <span class="o">=</span> <span class="n">_pad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-
-    <span class="c1"># Get the scaled coordinate system</span>
-    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="c1"># Crop</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># Ensure that real functions stay real</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
-            <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
-            <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyy</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">]</span>
-
-    <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">fftshift</span><span class="p">(</span><span class="n">fftn</span><span class="p">(</span><span class="n">pd</span><span class="p">))</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dxz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dyz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="n">dzz</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">temp</span><span class="p">))</span>
-        <span class="c1"># Crop</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dxz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dxz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dyz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dyz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dzz</span> <span class="o">=</span> <span class="n">_crop</span><span class="p">(</span><span class="n">dzz</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># Ensure that real functions stay real</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isrealobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxx</span><span class="p">)</span>
-            <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxy</span><span class="p">)</span>
-            <span class="n">dxz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dxz</span><span class="p">)</span>
-            <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyy</span><span class="p">)</span>
-            <span class="n">dyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dyz</span><span class="p">)</span>
-            <span class="n">dzz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">dzz</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dxz</span><span class="p">,</span> <span class="n">dyy</span><span class="p">,</span> <span class="n">dyz</span><span class="p">,</span> <span class="n">dzz</span><span class="p">]</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Unsupported number of dimensions </span><span class="si">{}</span><span class="s2">. We only supports 2 or 3D arrays.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
-            <span class="p">)</span>
-        <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="hessian_band_pass_kernel"><a class="viewcode-back" href="../../api/filters.html#jem.filters.hessian_band_pass_kernel">[docs]</a><span class="k">def</span> <span class="nf">hessian_band_pass_kernel</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Hessian, Gaussian 2nd order partial derivatives filter kernel in the image domain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Gausian 2nd derivative in each direction</span>
-    <span class="c1"># g = G(s) - G(s+1)</span>
-    <span class="c1"># from one scale to the next r**2 -&gt; 4*r**2</span>
-    <span class="c1"># (i*x)*(i*y)*g, etc</span>
-
-    <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
-        <span class="n">dxx</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dxx</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dxy</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dxy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">dyy</span> <span class="o">=</span> <span class="n">_crop_filter</span><span class="p">(</span><span class="n">dyy</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">dxx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dyy</span><span class="p">]</span>
-
-    <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">_scale_coordinates</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-        <span class="n">rsq</span> <span class="o">=</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">z</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">rsq</span><span class="p">)</span>
         <span class="n">dxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
         <span class="n">dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
         <span class="n">dxz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fftshift</span><span class="p">(</span><span class="n">ifftn</span><span class="p">(</span><span class="n">ifftshift</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">*</span> <span class="n">g</span><span class="p">))))</span>
@@ -1009,76 +740,83 @@
     <span class="k">return</span> <span class="n">dxxp</span><span class="p">,</span> <span class="n">dxyp</span><span class="p">,</span> <span class="n">dxzp</span><span class="p">,</span> <span class="n">dyyp</span><span class="p">,</span> <span class="n">dyzp</span><span class="p">,</span> <span class="n">dzzp</span></div>
 
 
-<div class="viewcode-block" id="weighted_low_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_low_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted low pass filter</span>
+<div class="viewcode-block" id="dog"><a class="viewcode-back" href="../../api/filters.html#jem.filters.dog">[docs]</a><span class="k">def</span> <span class="nf">dog</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">band_pass</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gaussian derivative operator with regularization</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">f</span></div>
+    <span class="c1"># Band pass</span>
+    <span class="c1">#   call gauss twice and subtract</span>
+    <span class="k">if</span> <span class="n">band_pass</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">dog</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">dog</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span>
+
+    <span class="c1"># Low pass</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">gradient</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">b</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">a</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">gradient</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">hessian</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">b</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">a</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hessian</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">f</span><span class="s2">&quot;Unsupported gaussian derivative order </span><span class="si">{order}</span><span class="s2">.&quot;</span>
+                <span class="n">f</span><span class="s2">&quot;We only supports derivatives up to order 2.&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="weighted_high_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_high_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_high_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted high pass filter</span>
+<div class="viewcode-block" id="dog_rotational_invariants"><a class="viewcode-back" href="../../api/filters.html#jem.filters.dog_rotational_invariants">[docs]</a><span class="k">def</span> <span class="nf">dog_rotational_invariants</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Rotational invariants of gaussian derivative operator</span>
+
+<span class="sd">    returns a list</span>
+
+<span class="sd">    Principal invariants and Frobenius norm</span>
+<span class="sd">    See https://en.wikipedia.org/wiki/Invariants_of_tensors</span>
+
+<span class="sd">    Gaussian (Order 0):</span>
+<span class="sd">        2 rotational invariant: G0, \|G0\|</span>
+<span class="sd">    Gradient (Order 1):</span>
+<span class="sd">        1 rotational invariant: \|G1\|</span>
+<span class="sd">    Hessian (Order 2):</span>
+<span class="sd">        in 2D, 3 rotational invariants: Tr(G2), Det(G2), \|G2\|</span>
+<span class="sd">        in 3D, 4 rotational invariants: Tr(G2), Det(G2), I2(G2), \|G2\|</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">weighted_low_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">f</span></div>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="p">[</span><span class="n">gradient_amplitude</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hessian_rot</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="n">f</span><span class="s2">&quot;Unsupported gaussian derivative order </span><span class="si">{order}</span><span class="s2">.&quot;</span>
+            <span class="n">f</span><span class="s2">&quot;We only support derivatives of order &lt;=2.&quot;</span>
+        <span class="p">)</span>
 
-
-<div class="viewcode-block" id="weighted_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_band_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted band pass filter</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">band_pass</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">f</span></div>
-
-
-<div class="viewcode-block" id="weighted_gradient"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_gradient">[docs]</a><span class="k">def</span> <span class="nf">weighted_gradient</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted gradient filter</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">gradient</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">a</span></div>
-
-
-<div class="viewcode-block" id="weighted_gradient_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_gradient_band_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_gradient_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted band pass gradient filter</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">gradient_band_pass</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">a</span></div>
-
-
-<div class="viewcode-block" id="weighted_hessian"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_hessian">[docs]</a><span class="k">def</span> <span class="nf">weighted_hessian</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted hessian filter</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">hessian</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">a</span></div>
-
-
-<div class="viewcode-block" id="weighted_hessian_band_pass"><a class="viewcode-back" href="../../api/filters.html#jem.filters.weighted_hessian_band_pass">[docs]</a><span class="k">def</span> <span class="nf">weighted_hessian_band_pass</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Weighted band pass hessian filter</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">hessian_band_pass</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">d</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">scale</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="o">*</span> <span class="n">_pinv</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">a</span></div>
+    <span class="k">return</span> <span class="n">rot</span></div>
 </pre></div>
 
            </div>
@@ -1108,28 +846,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
-        <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

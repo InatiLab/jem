@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Features (jem.features) &mdash; JEM 0.3.5 documentation</title>
+  <title>Features (jem.features) &mdash; JEM 0.3.7.post2+g832724d documentation</title>
   
 
   
@@ -17,13 +17,22 @@
   
 
   
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+        <script type="text/javascript" src="../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
@@ -31,21 +40,16 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Filters (jem.filters)" href="filters.html" />
     <link rel="prev" title="JEM API" href="index.html" /> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +63,7 @@
             
             
               <div class="version">
-                0.3.5
+                0.3.7.post2+g832724d
               </div>
             
           
@@ -161,8 +165,37 @@
   <div class="section" id="module-jem.features">
 <span id="features-jem-features"></span><span id="jem-features"></span><h1>Features (<code class="docutils literal notranslate"><span class="pre">jem.features</span></code>)<a class="headerlink" href="#module-jem.features" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="jem.features.band_pass_derivative_filters">
-<code class="descclassname">jem.features.</code><code class="descname">band_pass_derivative_filters</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#band_pass_derivative_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.band_pass_derivative_filters" title="Permalink to this definition">¶</a></dt>
+<dt id="jem.features.difference_pyramid">
+<code class="descclassname">jem.features.</code><code class="descname">difference_pyramid</code><span class="sig-paren">(</span><em>pyr</em>, <em>inplace=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#difference_pyramid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.difference_pyramid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Difference between levels of a derivative of gaussian pyramid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d</strong> – gaussian pyramid</li>
+<li><strong>inplace</strong> – bool, do the work in place or make a copy, default False</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of differences</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The output has length one less than the input
+diff_pyr = [pyr[0] - pyr[1], pyr[1] - pyr[2], …, pyr[N-2] - pyr[N-1]]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.features.fef_rotational_invariants">
+<code class="descclassname">jem.features.</code><code class="descname">fef_rotational_invariants</code><span class="sig-paren">(</span><em>fef</em>, <em>inplace=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#fef_rotational_invariants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.fef_rotational_invariants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotational invariants of the front end features</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="jem.features.front_end_features">
+<code class="descclassname">jem.features.</code><code class="descname">front_end_features</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#front_end_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.front_end_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multi-scale image filters from the zeroth, first, and
 second order gaussian derivatives with signal likelihood weighting</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -177,18 +210,45 @@ second order gaussian derivatives with signal likelihood weighting</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list, one dictionary per level</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dictionary {high_pass, zelist, one dictionary per level</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The multi scale bandpass derivatives are organized by scale,
+<p>High pass
+Multi scale bandpass derivatives are organized by scale,
 zero (band pass), first (gradient), second (hessian)</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="jem.features.gaussian_pyramid">
+<code class="descclassname">jem.features.</code><code class="descname">gaussian_pyramid</code><span class="sig-paren">(</span><em>d</em>, <em>order=0</em>, <em>num_scales=4</em>, <em>w=None</em>, <em>sigma=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#gaussian_pyramid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.gaussian_pyramid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pyramid from gaussian derivative filters with signal likelihood weighting</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d</strong> – 2D or 3D numpy array</li>
+<li><strong>order</strong> – Gaussian derivative order, 0, 1, or 2</li>
+<li><strong>w</strong> – signal likelihood</li>
+<li><strong>sigma</strong> – noise level</li>
+<li><strong>nscales</strong> – int number of scales</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The pyramid is organized by scale,
+Level 0, Level 1, .., Level num_scales-1</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="jem.features.laplacian_pyramid">
-<code class="descclassname">jem.features.</code><code class="descname">laplacian_pyramid</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>num_scales=3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#laplacian_pyramid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.laplacian_pyramid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.features.</code><code class="descname">laplacian_pyramid</code><span class="sig-paren">(</span><em>d</em>, <em>num_scales=4</em>, <em>w=None</em>, <em>sigma=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#laplacian_pyramid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.laplacian_pyramid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Laplacian pyramid from gaussian filters with signal likelihood weighting</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -202,33 +262,26 @@ zero (band pass), first (gradient), second (hessian)</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list, one dictionary per level</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of length num_scales + 1</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The pyramid is organized by scale,
-high pass, level 0, level 1, .., Level num_scales-1, low pass
-Adding the output back together produces the original input data</p>
+<p>The pyramid is organized by scale
+high pass, level 0, level 2, .., level num_scales-1, low pass</p>
+<p>Adding the output back together produces the original input data</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="jem.features.local_contrast_normalization">
-<code class="descclassname">jem.features.</code><code class="descname">local_contrast_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_contrast_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_contrast_normalization" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.features.</code><code class="descname">local_contrast_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>normalization_scale=5</em>, <em>w=None</em>, <em>sigma=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_contrast_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_contrast_normalization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Local contrast normalization
 Subtract the local mean and scale by the local mean absolute deviation</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="jem.features.local_gain_field">
-<code class="descclassname">jem.features.</code><code class="descname">local_gain_field</code><span class="sig-paren">(</span><em>f</em>, <em>w=None</em>, <em>sigma=0.001</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_gain_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_gain_field" title="Permalink to this definition">¶</a></dt>
-<dd><p>Local gain field
-Inverse of the local gain, i.e. multiply by this for local divisive normalization</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="jem.features.local_scale_normalization">
-<code class="descclassname">jem.features.</code><code class="descname">local_scale_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>w</em>, <em>sigma=0.001</em>, <em>scale=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_scale_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_scale_normalization" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">jem.features.</code><code class="descname">local_scale_normalization</code><span class="sig-paren">(</span><em>d</em>, <em>normalization_scale=5</em>, <em>w=None</em>, <em>sigma=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#local_scale_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.local_scale_normalization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Local normalization by the signal mean.</p>
 </dd></dl>
 
@@ -236,18 +289,6 @@ Inverse of the local gain, i.e. multiply by this for local divisive normalizatio
 <dt id="jem.features.rectify">
 <code class="descclassname">jem.features.</code><code class="descname">rectify</code><span class="sig-paren">(</span><em>data</em>, <em>polarity=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#rectify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.rectify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rectify the data, polarity is either 1 or -1</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="jem.features.riff">
-<code class="descclassname">jem.features.</code><code class="descname">riff</code><span class="sig-paren">(</span><em>data</em>, <em>num_scales=3</em>, <em>normalization_scale=5</em>, <em>local_normalization=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#riff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.riff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rotational invariant front end features</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="jem.features.rotational_invariants">
-<code class="descclassname">jem.features.</code><code class="descname">rotational_invariants</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/features.html#rotational_invariants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#jem.features.rotational_invariants" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute rotational invariants of a set of band pass derivative filters</p>
 </dd></dl>
 
 </div>
@@ -263,7 +304,7 @@ Inverse of the local gain, i.e. multiply by this for local divisive normalizatio
         <a href="filters.html" class="btn btn-neutral float-right" title="Filters (jem.filters)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="JEM API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="JEM API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -289,28 +330,16 @@ Inverse of the local gain, i.e. multiply by this for local divisive normalizatio
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
-        <script type="text/javascript" src="../_static/copybutton.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
