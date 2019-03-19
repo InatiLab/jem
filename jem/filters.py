@@ -633,7 +633,7 @@ def dog(d, order, scale, w=None, sigma=0.001, band_pass=False):
 
 
 def dog_rotational_invariants(f, order=0):
-    """Rotational invariants of gaussian derivative operator
+    r"""Rotational invariants of gaussian derivative operator
 
     returns a list
 
@@ -641,12 +641,12 @@ def dog_rotational_invariants(f, order=0):
     See https://en.wikipedia.org/wiki/Invariants_of_tensors
 
     Gaussian (Order 0):
-        2 rotational invariant: G0, |G0|
+        2 rotational invariant: G0, \|G0\|
     Gradient (Order 1):
-        1 rotational invariant: |G1|
+        1 rotational invariant: \|G1\|
     Hessian (Order 2):
-        in 2D, 3 rotational invariants: Tr(G2), Det(G2), |G2|
-        in 3D, 4 rotational invariants: Tr(G2), Det(G2), I2(G2), |G2|
+        in 2D, 3 rotational invariants: Tr(G2), Det(G2), \|G2\|
+        in 3D, 4 rotational invariants: Tr(G2), Det(G2), I2(G2), \|G2\|
     """
 
     if order == 0:

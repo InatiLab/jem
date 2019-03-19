@@ -80,12 +80,7 @@ def difference_pyramid(pyr, inplace=False):
     :return: list of differences
 
     The output has length one less than the input
-    diff_pyr = [
-        pyr[0] - pyr[1],
-        pyr[1] - pyr[2],
-        ...
-        pyr[N-2] - pyr[N-1]
-    ]
+    diff_pyr = [pyr[0] - pyr[1], pyr[1] - pyr[2], ..., pyr[N-2] - pyr[N-1]]
     """
 
     N = len(pyr)
