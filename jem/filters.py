@@ -217,7 +217,7 @@ def gradient(data, scale=1):
         if np.isrealobj(data):
             dx = np.real(dx)
             dy = np.real(dy)
-            dz = np.real(dy)
+            dz = np.real(dz)
         return [dx, dy, dz]
     else:
         raise RuntimeError(
