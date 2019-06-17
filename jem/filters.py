@@ -438,6 +438,21 @@ def hessian_amplitude(h):
         raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
     return a
 
+def hessian_det(h):
+    """
+    Determinant in the hessian filter band
+    """
+    if len(h) == 3:
+        det = h[0] * h[2] - h[1] * h[1]
+    elif len(h) == 6:
+        det = (
+            h[0] * (h[3] * h[5] - h[4] * h[4])
+            - h[1] * (h[1] * h[5] - h[4] * h[2])
+            + h[2] * (h[1] * h[4] - h[3] * h[2])
+        )
+    else:
+        raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
+    return det
 
 def hessian_rot(h):
     """
@@ -494,6 +509,18 @@ def hessian_rot(h):
     else:
         raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
 
+def hessian_trace(h):
+    """
+    Trace in the hessian filter band
+    Laplacian
+    """
+    if len(h) == 3:
+        trace = h[0] + h[2]
+    elif len(h) == 6:
+        trace = h[0] + h[3] + h[5]
+    else:
+        raise RuntimeError("Unsupported number of dimensions {}.".format(len(h)))
+    return trace
 
 def rotate_gradient_2d(gx, gy, z=0.0):
     """Rotate a 2d gradient or band pass gradient.

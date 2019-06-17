@@ -1,6 +1,6 @@
 import numpy as np
 
-from .filters import _pinv, dog, dog_rotational_invariants
+from .filters import _pinv, dog, dog_rotational_invariants, gaussian_pyramid, gradient_amplituide, hessian_amplitude, hessian_trace
 
 # Number of spatial scales
 NUM_SCALES = 4
@@ -215,3 +215,17 @@ def fef_rotational_invariants(fef, inplace=True):
         rfef["two"][n] = dog_rotational_invariants(fef["two"][n], order=2)
 
     return rfef
+
+def gaussian_pyramid_features(d, num_scales=NUM_SCALES):
+    """Rotational invariants of the gaussian pyramid features
+    """
+
+    gauss = gaussian_pyramid(d, order=0, num_scales=n_scales, w=w, sigma=sigma)
+    grad = gaussian_pyramid(d, order=1, num_scales=n_scales, w=w, sigma=sigma)
+    grad = [gradient_amplitude(x) for x in grad]
+    hess = gaussian_pyramid(d, order=2, num_scales=n_scales, w=w, sigma=sigma)
+    lap = [hessian_trace(x) for x in hess]
+    norm = [hessian_amplitude(x) for x in hess]
+    features = [d]+gauss+grad+lap+norm
+
+    return features
