@@ -220,10 +220,10 @@ def gaussian_pyramid_features(d, num_scales=NUM_SCALES):
     """Rotational invariants of the gaussian pyramid features
     """
 
-    gauss = gaussian_pyramid(d, order=0, num_scales=n_scales, w=w, sigma=sigma)
-    grad = gaussian_pyramid(d, order=1, num_scales=n_scales, w=w, sigma=sigma)
+    gauss = gaussian_pyramid(d, order=0, num_scales=num_scales, w=w, sigma=sigma)
+    grad = gaussian_pyramid(d, order=1, num_scales=num_scales, w=w, sigma=sigma)
     grad = [gradient_amplitude(x) for x in grad]
-    hess = gaussian_pyramid(d, order=2, num_scales=n_scales, w=w, sigma=sigma)
+    hess = gaussian_pyramid(d, order=2, num_scales=num_scales, w=w, sigma=sigma)
     lap = [hessian_trace(x) for x in hess]
     norm = [hessian_amplitude(x) for x in hess]
     features = [d]+gauss+grad+lap+norm
