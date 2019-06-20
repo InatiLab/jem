@@ -55,6 +55,7 @@ setup(
             "coil_correction=jem.cli:coil_correction",
             "laplacian_pyramid=jem.cli:compute_laplacian_pyramid",
             "riff=jem.cli:riff",
+            "compute_features=jem.cli:compute_features",
         ]
     },
     include_package_data=True,
