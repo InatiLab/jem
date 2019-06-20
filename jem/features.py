@@ -1,6 +1,6 @@
 import numpy as np
 
-from .filters import _pinv, dog, dog_rotational_invariants, gaussian_pyramid, gradient_amplituide, hessian_amplitude, hessian_trace
+from .filters import _pinv, dog, dog_rotational_invariants, gradient_amplituide, hessian_amplitude, hessian_trace
 
 # Number of spatial scales
 NUM_SCALES = 4
