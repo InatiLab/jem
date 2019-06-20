@@ -216,7 +216,7 @@ def fef_rotational_invariants(fef, inplace=True):
 
     return rfef
 
-def gaussian_pyramid_features(d, num_scales=NUM_SCALES):
+def gaussian_pyramid_features(d, num_scales=NUM_SCALES, w=w, sigma=sigma):
     """Rotational invariants of the gaussian pyramid features
     """
 

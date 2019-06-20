@@ -248,7 +248,7 @@ def compute_features(input_image, num_scales, normalization_scale, output):
     )
 
     # compute features
-    feats = gaussian_pyramid_features(f, num_scales=num_scales)
+    feats = gaussian_pyramid_features(f, num_scales=num_scales, w=w, sigma=sigma)
     feats = np.stack(feats, axis=-1)
 
     # write out the result in the same format and preserve the header
