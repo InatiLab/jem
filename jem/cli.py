@@ -12,6 +12,7 @@ from .features import (
     fef_rotational_invariants,
     NUM_SCALES,
     NORMALIZATION_SCALE,
+    gaussian_pyramid_features
 )
 
 
@@ -158,7 +159,7 @@ def compute_laplacian_pyramid(input_image, num_scales, normalization_scale, outp
 )
 @click.option("--lowpass/--no-lowpass", default=False)
 def riff(input_image, num_scales, normalization_scale, output, lowpass):
-    """Compute rotationally invariant features."""
+    """Compute rotationally invariant bandpass features."""
 
     click.echo(f"Compute rotationally invariant features for {input_image}.")
 
@@ -210,4 +211,47 @@ def riff(input_image, num_scales, normalization_scale, output, lowpass):
     out_im.set_data_dtype(np.float32)
     out_im.to_filename(output)
 
-    click.echo(f"Wrote rotationally invariant features to {output}.")
+    click.echo(f"Wrote rotationally invariant bandpass features to {output}.")
+
+@click.command()
+@click.option(
+    "--output",
+    type=click.STRING,
+    default="out.nii",
+    help="Output filename for the features image.",
+)
+@click.argument("input_image", type=click.STRING)
+@click.option(
+    "--num_scales", type=click.INT, default=NUM_SCALES, help="number of spatial scales"
+)
+@click.option(
+    "--normalization_scale",
+    type=click.INT,
+    default=NORMALIZATION_SCALE,
+    help="scale for input gain control",
+)
+def compute_features(input_image, num_scales, normalization_scale, output):
+    """Compute rotationally invariant features."""
+
+    click.echo(f"Compute rotationally invariant features for {input_image}.")
+
+    # open the images
+    im = nibabel.load(input_image)
+    data = im.get_data().astype(np.float32)
+
+    # Global scaling, signal likelihood, noise level
+    f, w, sigma = global_scale(data)
+
+    # Local scale normalization
+    f = local_scale_normalization(
+        f, w=w, sigma=sigma, normalization_scale=normalization_scale
+    )
+
+    # compute features
+    feats = gaussian_pyramid_features(f, num_scales=num_scales, w=w, sigma=sigma)
+    feats = np.stack(feats, axis=-1)
+
+    # write out the result in the same format and preserve the header
+    out_im = type(im)(feats, affine=None, header=im.header)
+    out_im.set_data_dtype(np.float32)
+    out_im.to_filename(output)
