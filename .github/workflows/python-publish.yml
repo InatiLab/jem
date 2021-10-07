@@ -37,6 +37,15 @@ jobs:
         file: ./coverage.xml    # coverage report
         fail_ci_if_error: true  # terminate workflow if an error occurs
     - name: Build documentation
-      run: poetry run make html --directory docs/  
+      run: poetry run make html --directory docs/ 
+      
+    - name: Python Semantic Release
+      run: |
+          pip install python-semantic-release
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          semantic-release publish
+          
+      
     
     
