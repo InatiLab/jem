@@ -29,23 +29,14 @@ jobs:
         python-version: '3.x'
     - name: Install dependencies
       run: |
-          pip install .
-          pip install -r requirements-dev.txt
-    - name: running tests & more installations
+        python3 -m pip install --upgrade pip
+        python3 -m pip install setuptools wheel twine
+    - name: build & publish
+      env:
+        PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-          coverage run -m pytest
-          coverage report -m
-          codecov
-          black .
-          flake8
-          set -e
-          make -C docs html
-          pip install doctr
-          doctr deploy --built-docs docs/build/html .
+        python3 setup.py sdist bdist_wheel
+        python3 -m twine upload dist/*
 
-          
-    #- name: Publish package
-    #  uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-    #  with:
-    #    user: ${{ secrets.PYPI_USERNAME }}
-    #    password: ${{ secrets.PYPI_PASSWORD }}
+      
