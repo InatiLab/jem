@@ -38,7 +38,10 @@ jobs:
           cd jem/tests
           python3 -m unittest discover
           cd ../..
-    
+    - name: Build and upload to PYPI
+      run: |
+        python3 setup.py sdist bdist_whell
+        python3 -m twine upload dist/*
     
 
 
