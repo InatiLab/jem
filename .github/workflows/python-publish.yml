@@ -22,10 +22,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
     - name: Set up Python
-    - uses: actions/setup-python@v2
+      uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: '3.x'
+    - name: Install dependencies & upgrade pip
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install setuptools wheel twine 
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        python3 setup.py install
+    - name: Test it with unitest
+      run: |
+          cd jem/tests
+          python3 -m unittest discover
+          cd ../..
 
       
     
