@@ -27,6 +27,8 @@ jobs:
       with:
         python-version: 3.9
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: snok/install-poetry@v1
     - name: Install package
       run: poetry install
