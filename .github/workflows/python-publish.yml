@@ -40,7 +40,7 @@ jobs:
           cd ../..
     - name: Build and upload to PYPI
       run: |
-        python3 setup.py sdist bdist_whell
+        python3 setup.py sdist bdist_wheel
         python3 -m twine upload dist/*
     
 
