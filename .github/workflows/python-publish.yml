@@ -32,15 +32,14 @@ jobs:
           pip install .
           pip install -r requirements-dev.txt
     - name: running tests & more installations
-    - run: | 
-          coverage run -m pytest
-          coverage report -m 
-          codecov
-          black .
-          flake8
-          set -e
-          make -C docs html 
-          pip install doctr
+    - run: coverage run -m pytest
+    - run: coverage report -m 
+    - run: codecov
+    - run: black .
+    - run: flake8
+    - run: set -e
+    - run: make -C docs html 
+    - run: pip install doctr
           
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
