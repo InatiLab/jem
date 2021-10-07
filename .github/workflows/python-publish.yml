@@ -10,6 +10,9 @@ name: Upload Python Package
 
 on:
   workflow_dispatch
+  #push:
+    #branches:
+      #- develop
   #release:
     #types: [published]
 
@@ -28,9 +31,21 @@ jobs:
       run: |
           pip install .
           pip install -r requirements-dev.txt
-
+    - name: running tests & more installations
+    - run: | 
+          coverage run -m pytest
+          coverage report -m 
+          codecov
+          black .
+          flake8
+          set -e
+          make -C docs html 
+          pip install doctr
+          
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
       with:
         user: ${{ secrets.PYPI_USERNAME }}
         password: ${{ secrets.PYPI_PASSWORD }}
+    - run: doctr deploy --built-docs docs/build/html .
+    
