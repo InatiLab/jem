@@ -6,25 +6,52 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Pylint
+name: Upload Python Package
 
-on: [push]
+on:
+  workflow_dispatch
+  #push:
+    #branches:
+      #- develop
+  #release:
+    #types: [published]
 
 jobs:
-  build:
+  deploy:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.9
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: '3.x'
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install pylint
-    - name: Analysing the code with pylint
-      run: |
-        pylint `ls -R|grep .py$|xargs`
+          pip install .
+          pip install -r requirements-dev.txt
+    - name: running tests & more installations
+    - run: coverage run -m pytest
+    - name: A
+    - run: coverage report -m 
+    - name: B
+    - run: codecov
+    - name: C
+    - run: black .
+    - name: D
+    - run: flake8
+    - name: E
+    - run: set -e
+    - name: F
+    - run: make -C docs html
+    - name: G
+    - run: pip install doctr
+    - name: H
+    - run: doctr deploy --built-docs docs/build/html .
+          
+    #- name: Publish package
+    #  uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+    #  with:
+    #    user: ${{ secrets.PYPI_USERNAME }}
+    #    password: ${{ secrets.PYPI_PASSWORD }}
