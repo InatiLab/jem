@@ -27,17 +27,40 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Install dependencies & upgrade pip
+    - uses: actions/checkout@v2
+      with:
+      fetch-depth: 0
+    - uses: snok/install-poetry@v1
+    - name: Install package
+      run: poetry install
+    - name: Test with pytest
+      run: poetry run pytest tests/ --cov=pycounts --cov-report=xml
+    - uses: codecov/codecov-action@v2
+      with:
+        file: ./coverage.xml    # coverage report
+        fail_ci_if_error: true  # terminate workflow if an error occurs
+      
+    - name: Build documentation
+      run: poetry run make html --directory docs/ 
+
+    - name: Python Semantic Release
       run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install setuptools wheel twine 
-        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-        python3 setup.py install
-    - name: Test it with unitest
+        pip install python-semantic-release
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        semantic-release publish
+    - uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.TEST_PYPI_PASSWORD }}
+        repository_url: https://test.pypi.org/legacy/
+    - name: Test install from TestPyPI  
       run: |
-          cd jem/tests
-          python3 -m unittest discover
-          cd ../..
+       pip install \
+       --index-url https://test.pypi.org/simple/ \
+       --extra-index-url https://pypi.org/simple \
+       pycounts
+    
 
       
     
