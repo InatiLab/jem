@@ -31,8 +31,8 @@ jobs:
       with:
        fetch-depth: 0
     - uses: snok/install-poetry@v1
-    - name: Install package
-      run: poetry install
+    #- name: Install package
+    #  run: poetry install
     #- name: Test with pytest
     #  run: poetry run pytest tests/ --cov=pycounts --cov-report=xml
     #- uses: codecov/codecov-action@v2
