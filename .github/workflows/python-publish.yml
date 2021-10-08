@@ -47,7 +47,7 @@ jobs:
     - name: install the publish tool 
       run: pip install doctr
     - name: publish the documentation
-      run: doctr deploy --built-docs docs/build/html .
+      run: doctr deploy --force --built-docs docs/build/html .
       
     #- name: Publish distribution to Test PyPI
     #  uses: pypa/gh-action-pypi-publish@master
