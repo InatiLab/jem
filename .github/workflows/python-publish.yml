@@ -49,20 +49,14 @@ jobs:
       with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The folder the action should deploy.
-    
-      
-    #- name: Publish distribution to Test PyPI
-    #  uses: pypa/gh-action-pypi-publish@master
-    #  with:
-    #      password: ${{ secrets.TEST_PYPI_PASSWORD }}
-    #      repository_url: https://test.pypi.org/legacy/
-    #- name: Test install from TestPyPI
-    #  run: |
-    #      pip install \
-    #     --index-url https://test.pypi.org/simple/ \
-     #     --extra-index-url https://pypi.org/simple \
-      #    jem
+          
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+       user: __token__
+       password: ${{ secret.PYPI_PASSWORD }}
+       
  
-      
+  
     
     
