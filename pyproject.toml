@@ -4,4 +4,4 @@ version = "0.3.10"
 description = "neuroimaging tool"
 authors = ["souheil Inati"]
 license = "MIT"
-readme = "README.md"
+
