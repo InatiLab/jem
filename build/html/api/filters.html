@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filters (jem.filters) &mdash; JEM 0.post1+g514a941 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Features (jem.features)" href="features.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> JEM
+          </a>
+              <div class="version">
+                0.post1+g514a941
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release-history.html">Release History</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">JEM API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="features.html">Features (<code class="docutils literal notranslate"><span class="pre">jem.features</span></code>)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Filters (<code class="docutils literal notranslate"><span class="pre">jem.filters</span></code>)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">JEM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="index.html">JEM API</a> &raquo;</li>
+      <li>Filters (<code class="docutils literal notranslate"><span class="pre">jem.filters</span></code>)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/filters.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-jem.filters">
+<span id="filters-jem-filters"></span><span id="jem-filters"></span><h1>Filters (<code class="docutils literal notranslate"><span class="pre">jem.filters</span></code>)<a class="headerlink" href="#module-jem.filters" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.dog">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">dog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_pass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#dog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.dog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian derivative operator with regularization</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.dog_rotational_invariants">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">dog_rotational_invariants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#dog_rotational_invariants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.dog_rotational_invariants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotational invariants of gaussian derivative operator</p>
+<p>returns a list</p>
+<p>Principal invariants and Frobenius norm
+See <a class="reference external" href="https://en.wikipedia.org/wiki/Invariants_of_tensors">https://en.wikipedia.org/wiki/Invariants_of_tensors</a></p>
+<dl class="simple">
+<dt>Gaussian (Order 0):</dt><dd><p>2 rotational invariant: G0, |G0|</p>
+</dd>
+<dt>Gradient (Order 1):</dt><dd><p>1 rotational invariant: |G1|</p>
+</dd>
+<dt>Hessian (Order 2):</dt><dd><p>in 2D, 3 rotational invariants: Tr(G2), Det(G2), |G2|
+in 3D, 4 rotational invariants: Tr(G2), Det(G2), I2(G2), |G2|</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.gaussian">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotationally symmetric Gaussian filter in the fourier domain</p>
+<p>Parametrized by a scale, resolution reduced by 2^(scale+1).
+Assumes the pixels are all the same size.
+Pad and crop to prevent wrap around junk.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.gaussian_kernel">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">gaussian_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gaussian_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.gaussian_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotationally symmetric Gaussian filter kernel in the image domain</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.gradient">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gradient, Gaussian 1st order partial derivative filter in the fourier domain</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.gradient_amplitude">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">gradient_amplitude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gradient_amplitude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.gradient_amplitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amplitude in the gradient filter band
+2/Frobenius norm</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.gradient_kernel">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">gradient_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#gradient_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.gradient_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gradient, Gaussian 1st order partial derivative filter kernel in the image domain</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.hessian">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hessian, Gaussian 2nd order partial derivatives filter in the fourier domain</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.hessian_amplitude">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">hessian_amplitude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_amplitude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.hessian_amplitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amplitude in the hessian filter band
+Frobenius norm</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.hessian_det">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">hessian_det</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_det"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.hessian_det" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determinant in the hessian filter band</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.hessian_kernel">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">hessian_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.hessian_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hessian, Gaussian 2nd order partial derivatives filter kernel in the image domain</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.hessian_rot">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">hessian_rot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_rot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.hessian_rot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotational invariants of the hessian</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.hessian_trace">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">hessian_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#hessian_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.hessian_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace in the hessian filter band
+Laplacian</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.high_pass">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">high_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#high_pass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.high_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>High pass filter
+data - G(data,s)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.rotate_gradient_2d">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">rotate_gradient_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_gradient_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.rotate_gradient_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 2d gradient or band pass gradient.</p>
+<p>gp = R * g</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.rotate_gradient_3d">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">rotate_gradient_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_gradient_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.rotate_gradient_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 3d gradient or band pass gradient.</p>
+<p>gp = R * g</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.rotate_hessian_2d">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">rotate_hessian_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_hessian_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.rotate_hessian_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 2d hessian or band pass hessian.</p>
+<p>Hp = R * H * R’</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jem.filters.rotate_hessian_3d">
+<span class="sig-prename descclassname"><span class="pre">jem.filters.</span></span><span class="sig-name descname"><span class="pre">rotate_hessian_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dxx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dzz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jem/filters.html#rotate_hessian_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jem.filters.rotate_hessian_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 3d hessian or band pass hessian.</p>
+<p>Hp = R’ * H * R</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="features.html" class="btn btn-neutral float-left" title="Features (jem.features)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018, Inati Lab, NINDS, NIH.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
