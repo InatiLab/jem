@@ -25,7 +25,7 @@ jobs:
     - name: install dependencies
       run: |
        python -m pip install --upgrade pip
-       pip install flake8 black build twine
+       pip install flake8 black wheel twine setuptools
        pip install .
        pip install -r requirements-dev.txt
     - name: runnig some pytest
@@ -49,6 +49,13 @@ jobs:
       with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The folder the action should deploy.
+    - name: build & punlish to pypi
+      env: 
+          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
           
     
        
