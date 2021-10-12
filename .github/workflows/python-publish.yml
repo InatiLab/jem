@@ -50,13 +50,12 @@ jobs:
       with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The folder the action should deploy.
-    #- name: build & punlish to pypi
-    #  env: 
-      #    TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-     #     TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-     # run: |
-     #   python setup.py sdist bdist_wheel
-     #   twine upload dist/*
+    - name: build a binary wheel & source tarball
+      run: |
+        python -m build --sdist --whell -outdir dist/ .
+        
+    
+
           
     
        
