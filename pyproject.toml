@@ -1,7 +1,0 @@
-[tool.poetry]
-name = "jem"
-version = "0.3.10"
-description = "neuroimaging tool"
-authors = ["souheil Inati"]
-license = "MIT"
-
