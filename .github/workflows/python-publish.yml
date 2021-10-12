@@ -25,7 +25,7 @@ jobs:
     - name: install dependencies
       run: |
        python -m pip install --upgrade pip
-       pip install flake8 black
+       pip install flake8 black build
        pip install .
        pip install -r requirements-dev.txt
     - name: runnig some pytest
