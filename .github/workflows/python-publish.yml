@@ -52,7 +52,7 @@ jobs:
           folder: docs # The folder the action should deploy.
     - name: build a binary wheel & source tarball
       run: |
-        python -m build --sdist --whell -outdir dist/ .
+        python -m build --sdist --wheel --outdir dist/ .
         
     
 
