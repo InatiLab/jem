@@ -41,7 +41,7 @@ with open(path.join(here, "requirements.txt")) as requirements_file:
 setup(
     name="jem",
     version="0.3.10",
-    cmdclass=versioneer.get_cmdclass(),
+    #cmdclass=versioneer.get_cmdclass(),
     description="Python package for MRI and electrophysiology analysis.",
     long_description=readme,
     author="Inati Lab, NINDS, NIH",
