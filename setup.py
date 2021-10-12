@@ -1,7 +1,7 @@
 from os import path
 from setuptools import setup, find_packages
 import sys
-import versioneer
+#import versioneer
 
 
 # NOTE: This file must remain Python 2 compatible for the foreseeable future,
