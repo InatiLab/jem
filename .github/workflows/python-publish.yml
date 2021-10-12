@@ -50,11 +50,7 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The folder the action should deploy.
           
-    - name: Publish distribution to PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-       user: __token__
-       password: ${{ secrets.PYPI_PASSWORD }}
+    
        
  
   
