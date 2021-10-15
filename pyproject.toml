@@ -4,9 +4,7 @@ version = "0.4.0"
 description = "Python package for MRI and electrophysiology analysis."
 authors = ["InatiLab"]
 license = "GNU General Public License v3.0"
-packages = [
-    { include = "./*.py" },
-]
+
 
 
 [tool.poetry.dependencies]
