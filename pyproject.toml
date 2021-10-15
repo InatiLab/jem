@@ -27,6 +27,8 @@ numpydoc = "^1.1.0"
 sphinx-copybutton = "^0.4.0"
 sphinx-rtd-theme = "^1.0.0"
 python-semantic-release = "^7.19.2"
+myst-nb = "^0.13.1"
+sphinx-autoapi = "^1.8.4"
 
 [tool.poetry.scripts]
 contrast_normalization = "jem.cli:contrast_normalization"
