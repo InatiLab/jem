@@ -14,23 +14,25 @@ on:
     #types: [published]
 
 jobs:
-  deploy:
-
+  ci:
+    # Step 1. Set up operating system
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
+    # Step 2. Set up Python 3.*
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Install dependencies
-      run: |
-          pip install .
-          pip install -r requirements-dev.txt
-
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      with:
-        user: ${{ secrets.PYPI_USERNAME }}
-        password: ${{ secrets.PYPI_PASSWORD }}
+    # Step 3. Check-out repository so we can access its contents
+    - uses: actions/checkout@v2
+    # Step 4. Install poetry
+    - uses: snok/install-poetry@v1
+    # Step 5. Install our jem package
+    - name: Install package
+      run: poetry install
+    # Step 6. Run tests for pycounts
+    - name: Test with pytest
+      run: poetry run pytest tests/
+    
+      - name: Build documentation
+      run: poetry run make html --directory docs/
