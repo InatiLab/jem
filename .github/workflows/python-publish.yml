@@ -33,6 +33,6 @@ jobs:
     # Step 6. Run tests for pycounts
     - name: Test with pytest
       run: poetry run pytest tests/
-    
-      - name: Build documentation
+    # Step 7. Build documentation
+    - name: Build documentation
       run: poetry run make html --directory docs/
