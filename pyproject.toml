@@ -1,0 +1,51 @@
+[tool.poetry]
+name = "jem"
+version = "0.3.12"
+description = "Python package for MRI and electrophysiology analysis."
+authors = ["InatiLab"]
+license = "GNU General Public License v3.0"
+packages = [
+    { include = "./*.py" },
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = "^8.0.3"
+nibabel = "^3.2.1"
+scipy = { version = "^1.7.1", python = "~3.7" }
+
+[tool.poetry.dev-dependencies]
+black = "^21.9b0"
+codecov = "^2.1.12"
+coverage = "^6.0.2"
+flake8 = "^4.0.1"
+flake8-bugbear = "^21.9.2"
+pytest = "^6.2.5"
+Sphinx = "^4.2.0"
+ipython = "^7.28.0"
+matplotlib = "^3.4.3"
+numpydoc = "^1.1.0"
+sphinx-copybutton = "^0.4.0"
+sphinx-rtd-theme = "^1.0.0"
+python-semantic-release = "^7.19.2"
+
+[tool.poetry.scripts]
+contrast_normalization = "jem.cli:contrast_normalization"
+coil_correction = "jem.cli:coil_correction"
+laplacian_pyramid = "jem.cli:compute_laplacian_pyramid"
+riff = "jem.cli:riff"
+compute_features = "jem.cli:compute_features"
+
+[tool.semantic_release]
+version_variable = "pyproject.toml:version"
+branch = "main"                             # branch to make releases of
+changelog_file = "CHANGELOG.md"             # changelog file
+build_command = "pip install poetry && poetry build"  # build dists
+dist_path = "dist/"                         # where to put dists
+upload_to_pypi = false                      # don't auto-upload to PyPI
+remove_dist = false                         # don't remove dists
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
