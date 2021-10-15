@@ -47,5 +47,5 @@ upload_to_pypi = false                      # don't auto-upload to PyPI
 remove_dist = false                         # don't remove dists
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
