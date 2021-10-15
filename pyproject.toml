@@ -39,7 +39,7 @@ compute_features = "jem.cli:compute_features"
 
 [tool.semantic_release]
 version_variable = "pyproject.toml:version"
-branch = "main"                             # branch to make releases of
+branch = "poetry-dev"                             # branch to make releases of
 changelog_file = "CHANGELOG.md"             # changelog file
 build_command = "pip install poetry && poetry build"  # build dists
 dist_path = "dist/"                         # where to put dists
